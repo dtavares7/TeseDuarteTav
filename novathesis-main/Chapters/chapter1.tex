@@ -1,0 +1,88 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter1.tex
+%% NOVA thesis document file
+%%
+%% Chapter with introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE chapter1.tex}%
+
+\chapter{Introduction}
+\label{cha:introduction}
+
+\prependtographicspath{{Chapters/Figures/Covers/}}
+
+% epigraph configuration
+\epigraphfontsize{\small\itshape}
+\setlength\epigraphwidth{12.5cm}
+\setlength\epigraphrule{0pt}
+
+\includegraphics[width=0.1\linewidth]{NOVAthesisFiles/Images/novathesis-insignia}\hfill
+\includegraphics[width=0.875\linewidth]{NOVAthesisFiles/Images/novathesis-text}
+
+\noindent This is the \gls{novathesis} \LaTeX\ template \ntindex[Template!]{Version} \novathesisversion\ from   {Template!date}\novathesisdate.
+
+\epigraph{
+  This work is licensed under the \href{https://www.latex-project.org/lppl/lppl-1-3c/}{\LaTeX\ Project Public License v1.3c}.
+  To view a copy of this \ntindex[Template!]{license}, visit the \href{https://www.latex-project.org/lppl/}{LaTeX project public license}.
+}
+
+
+In this chapter, the context of the dissertation is established with respect to previously developed related work, thereby outlining the motivation for the topic and the intended objectives. A concise overview of the dissertation’s structure is also provided.
+
+\section{Context and Motivation of the Work}
+\label{sec:context_and_motivation_of_the_work}
+
+
+The concept of Petri nets was first introduced by Carl Adam Petri during the First IFIP World Computer Conference held in Munich in 1962. Originally proposed as a modeling technique for distributed and concurrent systems in computer science, Petri nets have since become widely adopted in the fields of embedded systems and software development~\cite{adamCarlPetri}.
+
+Petri nets provide a robust and intuitive framework for the modeling and analysis of complex systems. Their graphical representation facilitates the visualization of concurrent, asynchronous, and distributed processes, while their underlying mathematical formalism enables rigorous validation and verification. Due to their versatility and expressive power, Petri nets have proven to be a valuable tool for both theoretical research and practical engineering applications~\cite{murata}.
+
+Among the numerous tools available for Petri net modeling, the IOPT-Tools environment underpins a specialized approach to developing controllers through an IOPT models—a specific class of Petri nets. The IOPT-Tools framework, accessible at \url{http://gres.uninova.pt/IOPTTools/}, provides mechanisms for decomposing complex models into independent sub-models, allowing them to execute across distinct computational nodes.
+
+The increasing of complex models of distributed control systems, particularly under the GALS (Globally Asynchronous, Locally Synchronous) paradigm, has intensified the need for efficient and dependable communication between these distributed sub-models. As systems become more modular and geographically distributed, guaranteeing low-latency data exchange and maintaining operational consistency pose significant challenges. 
+
+\section{Problem Statement}
+\label{sec:problem_statement}
+
+
+At the heart of this work lies the challenge of integrating effective communication channels into the IOPT-Tools environment. The main problem is to establish a robust mechanism that enables the distributed controllers, each executing an independent IOPT sub-model, to exchange data efficiently. This is complicated by the variety of communication technologies available, each with its distinct advantages and constraints, which raises the question of how best to manage this diversity and meet the rigorous performance requirements of distributed automated systems.
+
+\section{Objectives}
+\label{sec:objectives}
+
+This project is organized around two principal objectives:
+
+\begin{itemize}
+    \item Comparative Analysis of Communication Technologies: Conduct a thorough study of both wired point-to-point networks, such as I2C, SPI, and UART and wireless solutions like Wi-Fi and Bluetooth, evaluating them based on criteria such as simplicity, reliability, and latency.
+    \item Development of an Automated Code Generation Tool: Design and implement an algorithm or workflow that can automatically generate the code required for each IOPT sub-model. This mechanism should streamline the setup of efficient data exchanges among controllers, ensuring that the overall system remains robust and responsive to the demands of distributed control.
+\end{itemize}
+
+It is expected that the study of these two objectives will yield an automatic code generation tool capable of producing C or VHDL code, depending on the inputs provided. This tool will be implemented within the IOPT-tools, thereby ensuring reliable and effective communication between IOPT submodels.
+
+
+
+
+
+\section{Dissertation Structure}
+\label{sec:dissertation_structure}
+
+
+This dissertation is organized into four main chapters, each addressing a key component of the research:
+
+\begin{itemize}
+    \item \textbf{Chapter 1 – Introduction:}  
+    This chapter introduces the context and motivation behind the research, defines the problem statement, and presents the main objectives of the dissertation. Additionally, it outlines the structure of the document, providing a clear guide for the reader.
+
+   \item \textbf{Chapter 2 – State of the Art:}  
+This chapter provides a thorough review of the theoretical and technological foundations that underpin the research. It begins with an introduction to the fundamental concepts of Petri nets, including a discussion of their historical development. The chapter also explores the distinctive characteristics of IOPT Petri nets, with mention of the operations of net addition and subtraction. It further examines Globally Asynchronous Locally Synchronous (GALS) systems and delves into diferent communication technologies within distributed environments. Finally, the chapter discusses the IOPT-Tools environment and its associated features that support the research.
+
+    \item \textbf{Chapter 3 – Work Plan:}  
+    This chapter describes the planned research methodology, including the characterization of the proposed solution, the construction of the Gantt diagram for project scheduling, and the organization of tasks.
+
+    \item \textbf{Chapter 4 – Conclusion:}  
+    The final chapter presents the conclusions drawn from the conducted research, summarizing the contributions and suggesting directions for future work.
+\end{itemize}
+
+

@@ -1,0 +1,50 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% abstract-pt.tex
+%% NOVA thesis document file
+%%
+%% Abstract in Portuguese
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE abstract-pt.tex}%
+
+
+
+Como por texto em negrito \textbf{aqui} 
+
+%
+Como fazer linha vazia. rever texto
+
+
+
+
+
+O ambiente de desenvolvimento \textbf{IOPT-Tools}, acessível publicamente em http://gres.uninova.pt/IOPT-Tools/, apresenta-se como uma plataforma essencial para a /modelação/ e gestão de modelos \textbf{ IOPT}, uma classe especializada de redes de Petri orientada ao desenvolvimento de controladores. Este sistema reveste-se de particular importância no âmbito da automação e do controlo distribuído, permitindo a decomposição de um modelo IOPT em sub-modelos independentes, os quais podem ser executados de forma distribuída.
+
+A presente dissertação tem como objetivo o estudo, desenvolvimento e implementação dos módulos responsáveis pela comunicação entre controladores distribuídos /dentro/ do ambiente \textbf{IOPT-Tools}. Este ambiente permite a edição e decomposição de modelos \textbf{IOPT}, com vista à sua execução distribuída, sendo que cada nó da rede de controladores assume a responsabilidade pela execução de um sub-modelo \textbf{IOPT} associado e pela comunicação com os outros controladores da rede.
+
+Para resolver o problema proposto, o trabalho será orientado para duas vertentes principais: o estudo das tecnologias de comunicação e o desenvolvimento de um algoritmo para a geração automática de código para os sub-modelos IOPT.
+
+O principal desafio do trabalho consiste em assegurar uma comunicação eficiente e fiável entre os controladores distribuídos, tendo em consideração a utilização de diferentes meios de comunicação. A diversidade de tecnologias de comunicação envolvidas exige o desenvolvimento de uma solução robusta, capaz de lidar com as especificidades de cada tipo de rede, garantindo a troca de dados entre os controladores de forma eficiente, síncrona quando necessário, e com latência mínima, em conformidade com os requisitos dos sistemas \textbf{GALS} (Globalmente Assíncrono Localmente Síncrono).
+
+O primeiro foco do trabalho, será realizar um estudo aprofundado de duas categorias de tecnologias de comunicação: Redes de ponto a ponto e as redes wireless. As redes de ponto a ponto, como I2C, SPI e EEPROM, serão analisadas pela sua simplicidade, fiabilidade e baixa latência, sendo frequentemente utilizadas em sistemas de controlo distribuído. Por outro lado, as redes wireless, incluindo Wi-Fi, Bluetooth e TCP/IP, serão estudadas devido à sua flexibilidade e capacidade de suportar comunicação em sistemas mais dinâmicos e escaláveis. O objetivo deste estudo comparativo é identificar qual destas tecnologias se adapta melhor aos requisitos do sistema IOPT, tendo em consideração aspetos como latência, largura de banda, robustez e facilidade de implementação.
+
+Simultaneamente, será desenvolvido um algoritmo ou mecanismo que, com base no modelo de comunicação selecionado, permita a geração automática do código necessário para os sub-modelos IOPT. Este algoritmo terá como objetivo facilitar a implementação da comunicação entre os controladores distribuídos, garantindo que cada sub-modelo \textbf{IOPT} seja executado corretamente e interaja de forma eficiente com os outros controladores no sistema distribuído. A criação deste mecanismo será crucial para assegurar que os controladores possam comunicar de forma eficiente, respeitando os requisitos do modelo \textbf{GALS} e garantindo a integridade da troca de dados entre os controladores distribuídos.
+
+Em suma, a resolução do problema passará pela análise das tecnologias de comunicação mais adequadas para o sistema, seguida do desenvolvimento de um algoritmo que permita a geração automatizada do código para os sub-modelos \textbf{IOPT}, assegurando assim a comunicação eficiente e fiável entre os controladores distribuídos.
+
+
+
+
+% Palavras-chave do resumo em Português
+% \begin{keywords}
+% Palavra-chave 1, Palavra-chave 2, Palavra-chave 3, Palavra-chave 4
+% \end{keywords}
+\keywords{
+ IOPT-Tools \and
+  GALS \and
+  Redes-Petri \and
+  Redes de comunicação
+
+}
+% to add an extra black line
