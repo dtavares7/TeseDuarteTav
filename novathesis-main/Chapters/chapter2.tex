@@ -29,7 +29,7 @@
 }
 
 
-This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses GALS (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including I2C, SPI, UART, RS-485 and FIFO with hanshake, evaluating their suitability and ensuring effective communication within the distributed IOPT controller system .Finally, the chapter introduce the IOPT-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
+This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses GALS (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including I2C, SPI, UART, RS-485 and FIFO with hanshake, evaluating their suitability and ensuring effective communication within the distributed IOPT controller system .Finally, the chapter introduces the IOPT-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
 
 \section{Petri Nets}
 \label{sec:petri_nets}
@@ -46,6 +46,7 @@ In subsequent decades, the theoretical foundations of Petri nets were strengthen
 \label{subsec:definition}
 
 
+Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets, Input-Output Place-Transition(IOPT) among others were introduced to better meet these needs. 
 
 Petri nets are a bipartite directed‐graph formalism comprising of primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
 
@@ -91,10 +92,10 @@ Figure~\ref{fig:petrinet} illustrates the interaction between two components mod
 \label{sec:iopt_petri_nets}
 
 
-Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets among others were introduced to better meet these needs. The \textbf{Input-Output Place-Transition (IOPT) Petri Nets} were created to model controllers interacting with external environments through the use of input and output (I/O) interfaces\cite{iopttools}. They are considered \emph{non-autonomous}  where non-autonomous means that external signals can enable or disable transitions \cite{2015gomes}. The incorporation of inputs and output signals in Petri nets enables precise representation of the interactions between a controller and its external environment, therefore enabling its applicability in real-world environments  and making them particularly useful in automation and embedded systems\cite{iopttools}.
+The \textbf{Input-Output Place-Transition (IOPT) Petri Nets} were created to model controllers interacting with external environments through the use of input and output (I/O) interfaces\cite{iopttools}. They are considered \emph{non-autonomous}  where non-autonomous means that external signals can enable or disable transitions \cite{2015gomes}. The incorporation of inputs and output signals in Petri nets enables precise representation of the interactions between a controller and its external environment, therefore enabling its applicability in real-world environments  and making them particularly useful in automation and embedded systems\cite{iopttools}.
 
 
-The IOPT framework can be defined as a tuple of input signals (IS), input events (IE), output signals (OS), and output events (OE). This design ensures the synchronization of the modeled control logic with the external environment \cite{iopttools}. The introduction of priority attributes for transitions and the inclusion of test arcs represent notable advancements over earlier versions of IOPT nets, such as those described in previous works in~\cite{barros2004} and~\cite{bg2005}. The introduction off prioritization allows for effective conflict resolution among transitions, while test arcs facilitate the implementation of fair arbitration mechanisms~\cite{conflict}.
+The IOPT framework can be defined as a tuple of input signals (IS), input events (IE), output signals (OS), and output events (OE). This design ensures the synchronization of the modeled control logic with the external environment \cite{iopttools}. The introduction of priority attributes for transitions and the inclusion of test arcs represent notable advancements over earlier versions of IOPT nets, such as those described in previous works in~\cite{barros2004} and~\cite{bg2005}. The introduction of prioritization allows for effective conflict resolution among transitions, while test arcs facilitate the implementation of fair arbitration mechanisms~\cite{conflict}.
 
 Furthermore, the IOPT framework incorporates features such as time domains and communication channels, which support the modeling of networked controllers and globally-asynchronous locally-synchronous (GALS) systems. Its metamodel complies with the Petri Net Markup Language (PNML) and extends it with Ecore-based representations to capture I/O, timing, and communication aspects~\cite{iopttools}.
 
@@ -139,7 +140,7 @@ These rules ensure that the resulting submodels maintain the structural and beha
 \end{itemize}
 
 
-Figure~\ref{fig:petrisplit} presents two Petri nets resulting from the decomposition of the Petri net shown in Figure~\ref{fig:petrinet}. The left-hand side have an output \( z \), while the right-hand side illustrates an input \( A \). Performing a net composition (addition) of these two subnets yields the original net represented in Figure~\ref{fig:petrinet}.
+Figure~\ref{fig:petrisplit} presents two Petri nets resulting from the decomposition of the Petri net shown in Figure~\ref{fig:petrinet}. The left-hand side has an output \( z \), while the right-hand side illustrates an input \( A \). Performing a net composition (addition) of these two subnets yields the original net represented in Figure~\ref{fig:petrinet}.
 
 
 \section{GALS}
@@ -254,7 +255,7 @@ The Universal Asynchronous Receiver-Transmitter, UART, is a fundamental componen
 
 UART operates by converting parallel data into serial form for transmission, and performing the reverse operation during reception. The data frame typically includes a start bit (logical low), a defined number of data bits, an optional parity bit for error detection, and one or more stop bits. While UART handles data framing and signal generation, it does not define a standardized signaling protocol between devices, requiring both ends to be properly configured. UART signals are output at the operating voltage of the device, making them suitable for short-range communication between components operating at identical voltage levels. However, in many practical applications, this condition is not met, for this reason  UART signals are often routed through line drivers to convert them into standard electrical signaling formats, such as RS-485, to support longer distances and improve noise immunity~\cite{Rao2021}.
 
-UART communication does not rely on a shared clock signal, instead communicating devices uses predefined baud rates to determine the timing of data bits to ensure synchronization ~\cite{UARTard}.  The integration of UART modules within IOPT Petri net models is crucial for the accurate representation and verification of asynchronous communication in GALS systems. 
+UART communication does not rely on a shared clock signal, instead communicating devices use predefined baud rates to determine the timing of data bits to ensure synchronization ~\cite{UARTard}.  The integration of UART modules within IOPT Petri net models is crucial for the accurate representation and verification of asynchronous communication in GALS systems. 
 
 
 
@@ -296,7 +297,7 @@ IOPT-Tools delivers a complete, start-to-finish solution for creating controller
 
 While IOPT-Tools provides this extensive support for developing and generating code for individual controller logic, and facilitates the decomposition of models for distributed architectures, a significant challenge remains in automatically establishing and managing the communication between these distributed sub-models. The current automatic code generation primarily focuses on the internal logic of each individual sub-model. Crucially, it does not extend to automatically generating the necessary communication infrastructure required for these distinct sub-models to interact efficiently and reliably when deployed across different computational nodes.
 
-This lack of automated support for diferent sub models, or petri nets, communication means that engineers must currently undertake the complex and error-prone task of manually implementing these communication links. This manual process involves selecting appropriate communication technologies (such as those reviewed in Section~\ref{sec:communication_support_technologies}), writing and integrating low-level driver code, and ensuring data consistency. This not only diminishes the benefits of automated generation for the core logic but also increases development time, hinders system optimization, and introduces potential for integration issues.
+This lack of automated support for different sub models, or petri nets, communication means that engineers must currently undertake the complex and error-prone task of manually implementing these communication links. This manual process involves selecting appropriate communication technologies (such as those reviewed in Section~\ref{sec:communication_support_technologies}), writing and integrating low-level driver code, and ensuring data consistency. This not only diminishes the benefits of automated generation for the core logic but also increases development time, hinders system optimization, and introduces potential for integration issues.
 
 Addressing this specific gap,by designing and implementing a tool that automates the generation of code for efficient and reliable communication channels between distributed IOPT sub-models, is the central objective of this dissertation. This will further enhance IOPT-Tools' capabilities for developing truly distributed control systems.
 
@@ -304,7 +305,7 @@ Addressing this specific gap,by designing and implementing a tool that automates
 \subsection{Overview of Key Components in IOPT-Tools}
 \label{sub:iopt_tools_components}
 
-talk about graphical editor, verification engine, existing code generator (and its limitations), commit test
+talk about graphical editor, verification engine, existing code generator (and its limitations), commit test 
 
 
 
