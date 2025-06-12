@@ -116,34 +116,22 @@ As the term suggests, net composition functions as a composition operator that i
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Net Decomposition (or Net Splitting):  - In progress  }     
-Net Decomposition refers to the deliberate removal of specific subnets from a larger Petri net model without compromising the integrity of the overall system. It enables us to decompose the system into smaller, more manageable units, thereby supporting modular design approaches and  allowing for incremental development and analysis~\cite{Barrosadd}. 
+    \item \textbf{Net Decomposition (or Net Splitting): }     
+    
+Net Decomposition, or net splitting,  is a formal operation designed to divide Petri net models into a set of smaller, concurrent sub-models.The primary goal is to transform a centralized system specification into distributed components that can be independently implemented on various platforms, such as separate hardware controllers or software processes~\cite{co-design}. The use of net splitting creates smaller and more manageable systems, supporting modular design approaches and allowing for incremental development and analysis~\cite{Barrosadd}.
 
-
-In net splitting operation it is essential to identify and validate the nodes, know as the \emph{cutting set}, where the model should be broken. The validity of a cutting set is determined by adhering to the following three rules~\cite{apresentacao}:
+In net splitting operations, it is essential to identify and validate the nodes, known as the \emph{cutting set}, where the model should be broken. The validity of a cutting set is determined by adhering to the following rules introduced in ~\cite{splitting}:
 
 \begin{enumerate}
-    \item The cutting node is a place.
-    \item The cutting node is a transition with incoming arcs exclusively from a single component.
-    \item The cutting node is a transition with incoming arcs from multiple components.
+    \item \textbf{Rule 1} - Splitting at a Place: This rule is invoked when the cutting node is a place. The fundamental precondition is that after the conceptual removal of the place, its pre-set (input transitions) and post-set (output transitions) are separated into different components.
+    \item \textbf{Rule 2} - Splitting at a Transition with Single-Component Input: If a transition is the cutting node and all its input places belong to what will become a single component, the transition is kept in that "master" component. A copy of the transition is then placed in the component(s) containing the output places.
+    \item\textbf{ Rule 3} - Splitting at a Transition with Multi-Component Input: If a cutting transition has input places that will belong to different components after the split, one component is designated as the "master." This master component receives the original transition and copies of the input places (and their preceding transitions) from the other components. The other components receive a copy of the cutting transition.
 \end{enumerate}
 
-These rules ensure that the resulting submodels maintain the structural and behavioral integrity of the original system.
-
-
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrisplit.jpg}
-  \caption{Example of Petri net after net subtraction.}
-  \label{fig:petrisplit}
-\end{figure}
-
+To maintain behavioral consistency immediately after the split, the operation relies on synchronous communication channels ~\cite{splitting}, ~\cite{co-design}. When a node is split, the original and its copies are linked in a "synchrony set" or "synchrony group" ~\cite{co-design}. One transition in the set is designated as the "master" and the others as "slaves" ~\cite{splitting}, ~\cite{co-design}. Semantically, all transitions in a synchrony set are intended to fire simultaneously, as if they were a single fused transition ~\cite{splitting}. This ensures that, at the model level, the set of sub-models is behaviorally equivalent or similar to the original, monolithic net ~\cite{splitting}, ~\cite{co-design}.
 
 \end{itemize}
 
-
-Figure~\ref{fig:petrisplit} presents two Petri nets resulting from the decomposition of the Petri net shown in Figure~\ref{fig:petrinet}. The left-hand side has an output \( z \), while the right-hand side illustrates an input \( A \). Performing a net composition (addition) of these two subnets yields the original net represented in Figure~\ref{fig:petrinet}.
 
 
 \section{GALS}
