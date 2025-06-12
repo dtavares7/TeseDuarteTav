@@ -35,13 +35,13 @@ In this chapter, the context of the dissertation is established with respect to 
 \label{sec:context_and_motivation_of_the_work}
 
 
-The concept of Petri nets was first introduced by Carl Adam Petri during the First IFIP World Computer Conference held in Munich in 1962. Originally proposed as a modeling technique for distributed and concurrent systems in computer science, Petri nets have since become widely adopted in the fields of embedded systems and software development~\cite{adamCarlPetri}.
+The concept of Petri nets was first introduced by Carl Adam Petri in his 1962 dissertation, "Kommunikation mit Automaten"~\cite{petri1962}. Originally proposed as a modeling technique for distributed and concurrent systems in computer science, Petri nets have since become widely adopted in the fields of embedded systems and software development.
 
 Petri nets provide a robust and intuitive framework for the modeling and analysis of complex systems. Their graphical representation facilitates the visualization of concurrent, asynchronous, and distributed processes, while their underlying mathematical formalism enables rigorous validation and verification. Due to their versatility and expressive power, Petri nets have proven to be a valuable tool for both theoretical research and practical engineering applications~\cite{murata}.
 
 Among the numerous tools available for Petri net modeling, the IOPT-Tools environment underpins a specialized approach to developing controllers through an IOPT models—a specific class of Petri nets. The IOPT-Tools framework, accessible at \url{http://gres.uninova.pt/IOPTTools/}, provides mechanisms for decomposing complex models into independent sub-models, allowing them to execute across distinct computational nodes.
 
-The increasing of complex models of distributed control systems, particularly under the GALS (Globally Asynchronous, Locally Synchronous) paradigm, has intensified the need for efficient and dependable communication between these distributed sub-models. As systems become more modular and geographically distributed, guaranteeing low-latency data exchange and maintaining operational consistency pose significant challenges. 
+The increasing complexity of distributed control system models, particularly under the GALS (Globally Asynchronous, Locally Synchronous) paradigm, has intensified the need for efficient and dependable communication between these distributed sub-models. As systems become more modular and geographically distributed, guaranteeing low-latency data exchange and maintaining operational consistency pose significant challenges. 
 
 \section{Problem Statement}
 \label{sec:problem_statement}

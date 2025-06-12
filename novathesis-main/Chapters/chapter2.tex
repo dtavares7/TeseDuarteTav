@@ -18,17 +18,6 @@
 \setlength\epigraphwidth{12.5cm}
 \setlength\epigraphrule{0pt}
 
-\includegraphics[width=0.1\linewidth]{NOVAthesisFiles/Images/novathesis-insignia}\hfill
-\includegraphics[width=0.875\linewidth]{NOVAthesisFiles/Images/novathesis-text}
-
-\noindent This is the \gls{novathesis} \LaTeX\ template \ntindex[Template!]{Version} \novathesisversion\ from   {Template!date}\novathesisdate.
-
-\epigraph{
-  This work is licensed under the \href{https://www.latex-project.org/lppl/lppl-1-3c/}{\LaTeX\ Project Public License v1.3c}.
-  To view a copy of this \ntindex[Template!]{license}, visit the \href{https://www.latex-project.org/lppl/}{LaTeX project public license}.
-}
-
-
 This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses GALS (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including I2C, SPI, UART, RS-485 and FIFO with hanshake, evaluating their suitability and ensuring effective communication within the distributed IOPT controller system .Finally, the chapter introduces the IOPT-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
 
 \section{Petri Nets}
@@ -37,7 +26,7 @@ This chapter establishes the theoretical framework for the development of a dist
 
 \subsection{History}
 \label{subsec:history}
-The German computer scientist Carl Adam Petri formalized the concept of  Petri nets, as a formalism for modeling distributed and concurrent systems, in his 1962 PhD dissertation, \emph{Kommunikation mit Automaten}, at the Technical University of Darmstadt~\cite{adamCarlPetri}, in the following years, the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}, while the annual International Conference on Applications and Theory of Petri Nets and Concurrency provided a forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete‐event and concurrent systems modeling~\cite{WikiPetriNet2025}.
+The German computer scientist Carl Adam Petri formalized the concept of  Petri nets, as a formalism for modeling distributed and concurrent systems, in his 1962 PhD dissertation, \emph{Kommunikation mit Automaten}, at the Technical University of Darmstadt~\cite{petri1962}, in the following years, the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}, while the annual International Conference on Applications and Theory of Petri Nets and Concurrency provided a forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete‐event and concurrent systems modeling~\cite{WikiPetriNet2025}.
 
 
 In subsequent decades, the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}, while the establishment of the International Conference on Applications and Theory of Petri Nets and Concurrency created an annual forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete‐event and concurrent systems modeling~\cite{WikiPetriNet2025}.
@@ -48,9 +37,12 @@ In subsequent decades, the theoretical foundations of Petri nets were strengthen
 
 Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets, Input-Output Place-Transition(IOPT) among others were introduced to better meet these needs. 
 
-Petri nets are a bipartite directed‐graph formalism comprising of primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
 
-Graphically, Petri nets serve as intuitive visual‐communication aids for stakeholders, such as clients, manufacturers and users, supporting model comprehension and system specification~\cite{pn-Wolfgang}.
+To manage this diversity, the term \textbf{Place/Transition net (P/T net)} was established as the standard name for the classical formalism, a standardization heavily influenced by seminal works such as Murata's~\cite{murata}. This P/T net serves as the foundational model from which the advanced types mentioned above are derived. Essentially, every advanced Petri net is an extension of the classical P/T net, inheriting its fundamental concepts of places, transitions, and firing rules. A firm grasp of the P/T net definition is therefore a prerequisite for understanding its more complex variants.
+
+Place/Transition nets are a bipartite directed‐graph formalism comprising of primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
+
+Graphically, P/T nets serve as intuitive visual‐communication aids for stakeholders, such as clients, manufacturers and users, supporting model comprehension and system specification~\cite{pn-Wolfgang}.
 
  Mathematically, they admit formalisms like state equations and algebraic invariants for rigorous analysis; however, there is a critical tradeoff between modeling generality and analysis capability, often necessitating application‐specific restrictions or tool support for simulation and verification~\cite{murata}.
 
@@ -64,7 +56,7 @@ Graphically, Petri nets serve as intuitive visual‐communication aids for stake
 
 
 
-The formal definition of a Petri net states that a Petri net \( PN \) is defined as the tuple (meaning they cannot be modified once created) \( PN = (P, T, F, W, M_0) \)~\cite{murata}, where:
+The formal definition of a P/T net states that a Petri net \( PN \) is defined as the tuple (meaning they cannot be modified once created) \( PN = (P, T, F, W, M_0) \)~\cite{murata}, where:
 
 
 \begin{itemize}
@@ -79,12 +71,13 @@ The formal definition of a Petri net states that a Petri net \( PN \) is defined
 A Petri net structure \( N = (P, T, F, W) \) without an initial marking is denoted by \( N \) and a Petri net with an initial marking is denoted by \( (N, M_0) \).
 
 
-Figure~\ref{fig:petrinet} illustrates the interaction between two components modeled using an IOPT net. This example, taken directly from~\cite{example}, presents a Petri net incorporating a synchronous communication channel.
+Figure~\ref{fig:petrinet} presents aPlace/Transition net that models the execution and synchronization of two parallel processes. The model demonstrates a classic fork-join structure, where concurrent tasks are initiated by transition $T_0$ and must both be completed before synchronizing at transition $T_3$ to continue the cycle.
+
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrinet.jpg}
-  \caption{Example of Petri net.}
+  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petriNetExemplo.jpg}
+  \caption{Example of Place/Transition net.}
   \label{fig:petrinet}
 \end{figure}
 
@@ -100,21 +93,31 @@ The IOPT framework can be defined as a tuple of input signals (IS), input events
 Furthermore, the IOPT framework incorporates features such as time domains and communication channels, which support the modeling of networked controllers and globally-asynchronous locally-synchronous (GALS) systems. Its metamodel complies with the Petri Net Markup Language (PNML) and extends it with Ecore-based representations to capture I/O, timing, and communication aspects~\cite{iopttools}.
 
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrisplit.jpg}
+  \caption{Example of IOPT Petri net.}
+  \label{fig:petrisplit}
+\end{figure}
 
 
-\subsection{IOPT Net Addition and Subtraction (Composition and Decomposition)}
+Figure~\ref{fig:petrisplit} presents two Petri nets where transitions are made with communication actions (>\#Z on $T_1$ and \#A> on $T_2$). The figure demonstrates how locally asynchronous components achieve global synchrony. Structurally, the two sub-nets are independent, as the enabling of $T_1$ and $T_2$ depends only on their local markings but a transition can only fire if a complementary input/output action occurs simultaneously in its environment. In the state shown, although both transitions are locally enabled, they cannot synchronize with each other as their communication actions do not match; each must await a corresponding partner.
+
+
+
+\subsection{IOPT Net Composition and Decomposition}
 \label{sub:net_addicion}
 
-Net addition and net subtraction are fundamental operations in the IOPT Petri nets framework, they form the foundation for its adaptability in embedded and distributed systems.The combination and decomposition of two IOPT nets through synchronized transitions and shared places preserve the input/output (I/O) signal dependencies~\cite{add1}.
+Net Composition and Decomposition are fundamental operations in the IOPT Petri nets framework, they form the foundation for its adaptability in embedded and distributed systems.The combination and decomposition of two IOPT nets through synchronized transitions and shared places preserve the input/output (I/O) signal dependencies~\cite{add1}.
 
 \begin{itemize}
-    \item \textbf{Net Addition (Composition): }     
-As the term suggests, net addition functions as a composition operator that integrates two IOPT net modules into a larger model, thereby facilitating the reuse of pre-validated components. Comparable to additive compositionality~\cite{add2}, this operation transforms submodels into coherent systems while preserving semantic consistency through synchronized transitions and shared places, which maintain the dependencies of input/output (I/O) signals~\cite{add1}.
+    \item \textbf{Net Composition: }     
+As the term suggests, net composition functions as a composition operator that integrates two IOPT net modules into a larger model, thereby facilitating the reuse of pre-validated components. Comparable to additive compositionality~\cite{add2}, this operation transforms submodels into coherent systems while preserving semantic consistency through synchronized transitions and shared places, which maintain the dependencies of input/output (I/O) signals~\cite{add1}.
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Net Subtraction (Decomposition): }     
-Net Subtraction refers to the deliberate removal of specific subnets from a larger Petri net model without compromising the integrity of the overall system. It enables us to decompose the system into smaller, more manageable units, thereby supporting modular design approaches and  allowing for incremental development and analysis~\cite{Barrosadd}. 
+    \item \textbf{Net Decomposition (or Net Splitting): }     
+Net Decomposition refers to the deliberate removal of specific subnets from a larger Petri net model without compromising the integrity of the overall system. It enables us to decompose the system into smaller, more manageable units, thereby supporting modular design approaches and  allowing for incremental development and analysis~\cite{Barrosadd}. 
 
 
 In net splitting operation it is essential to identify and validate the nodes, know as the \emph{cutting set}, where the model should be broken. The validity of a cutting set is determined by adhering to the following three rules~\cite{apresentacao}:
@@ -219,7 +222,26 @@ All elements on the left side operate synchronously within \( TD_1 \), while tho
   \label{fig:petrigals}
 \end{figure}
 
-
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
 
 \section{Communication support technologies}
 \label{sec:communication_support_technologies}
@@ -263,19 +285,7 @@ UART communication does not rely on a shared clock signal, instead communicating
 \subsection{FIFO + Handshake}
 \label{sub:fifo+handshake}
 
-A small asynchronous FIFO buffer holds data between the sensor and robotic arm controller.
-
-Handshake signals (valid / ready or req / ack) control safe data transfer.
-
-This ensures:
-
-No data is lost or overwritten.
-
-Timing mismatch between the two systems is tolerated.
-
-Very efficient
- Fully decouples sender and receiver
-Ideal for FPGA or hardware-in-the-loop systems
+FIFO, short for First-In-First-Out, is a protocol that utilizes buffers together with handshake signals. Is a memory buffer that stores data elements in the order of their arrival and retrieves them in the same sequence, thereby adhering to the 'first-in, first-out' principle. To manage and facilitate the data flow of this buffer effectively, the handshake is used, it prevents issues such as corruption or data loss.This communication involves three primary signals: the data bus, which carries the actual information; a valid signal, asserted by the sender or source interface to indicate that the data is stable and available for transfer; and a ready signal, asserted by the receiver or destination interface to signify its preparedness to accept new data. The use of these signals ensures that no data is lost or overwritten and allows for an asynchronous communication system. Such a mechanism is highly efficient, fully decouples the sender and receiver, and is particularly well-suited for implementations in Field-Programmable Gate Arrays (FPGAs) or hardware-in-the-loop systems.
 
 \section{IOPT tools}
 \label{sec:iopt_tools}
