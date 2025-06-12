@@ -116,7 +116,7 @@ As the term suggests, net composition functions as a composition operator that i
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Net Decomposition (or Net Splitting): }     
+    \item \textbf{Net Decomposition (or Net Splitting):  - In progress  }     
 Net Decomposition refers to the deliberate removal of specific subnets from a larger Petri net model without compromising the integrity of the overall system. It enables us to decompose the system into smaller, more manageable units, thereby supporting modular design approaches and  allowing for incremental development and analysis~\cite{Barrosadd}. 
 
 
@@ -222,21 +222,17 @@ All elements on the left side operate synchronously within \( TD_1 \), while tho
   \label{fig:petrigals}
 \end{figure}
 
+
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
+%
+%
+%
+%
+%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
@@ -282,10 +278,47 @@ UART communication does not rely on a shared clock signal, instead communicating
 
 
 
-\subsection{FIFO + Handshake}
+\subsection{FIFO + Handshake - In progress}
 \label{sub:fifo+handshake}
 
 FIFO, short for First-In-First-Out, is a protocol that utilizes buffers together with handshake signals. Is a memory buffer that stores data elements in the order of their arrival and retrieves them in the same sequence, thereby adhering to the 'first-in, first-out' principle. To manage and facilitate the data flow of this buffer effectively, the handshake is used, it prevents issues such as corruption or data loss.This communication involves three primary signals: the data bus, which carries the actual information; a valid signal, asserted by the sender or source interface to indicate that the data is stable and available for transfer; and a ready signal, asserted by the receiver or destination interface to signify its preparedness to accept new data. The use of these signals ensures that no data is lost or overwritten and allows for an asynchronous communication system. Such a mechanism is highly efficient, fully decouples the sender and receiver, and is particularly well-suited for implementations in Field-Programmable Gate Arrays (FPGAs) or hardware-in-the-loop systems.
+
+
+
+\subsection{IP - In progress}
+\label{sub:ip}
+
+The Internet Protocol (IP) is a protocol, or set of rules, for routing and addressing packets of data so that they can travel across networks and arrive at the correct destination. Data traversing the Internet is divided into smaller pieces, called packets. IP information is attached to each packet, and this information helps routers to send packets to the right place. Every device or domain that connects to the Internet is assigned an IP address, and as packets are directed to the IP address attached to them, data arrives where it is needed.
+
+Once the packets arrive at their destination, they are handled differently depending on which transport protocol is used in combination with IP. The most common transport protocols are TCP and UDP.
+\subsubsection{TCP/IP - In progress}
+\label{sub:TCP_IP}
+
+TCP is designed for reliability, not speed. Because TCP has to make sure all packets arrive in order, loading data via TCP/IP can take longer if some packets are missing.
+
+\subsubsection{UDP/IP - In progress}
+\label{sub:UDP_IP}
+
+ Is faster than TCP, but it is also less reliable. UDP does not make sure all packets are delivered and in order, and it does not establish a connection before beginning or receiving transmissions.
+
+
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+		 %
+		 %
+		 %
+		 %
+		 %
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+
+
 
 \section{IOPT tools}
 \label{sec:iopt_tools}
@@ -312,7 +345,7 @@ This lack of automated support for different sub models, or petri nets, communic
 Addressing this specific gap,by designing and implementing a tool that automates the generation of code for efficient and reliable communication channels between distributed IOPT sub-models, is the central objective of this dissertation. This will further enhance IOPT-Tools' capabilities for developing truly distributed control systems.
 
 
-\subsection{Overview of Key Components in IOPT-Tools}
+\subsection{Overview of Key Components in IOPT-Tools - In progress}
 \label{sub:iopt_tools_components}
 
 talk about graphical editor, verification engine, existing code generator (and its limitations), commit test 
