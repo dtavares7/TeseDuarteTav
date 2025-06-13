@@ -288,6 +288,67 @@ TCP is designed for reliability, not speed. Because TCP has to make sure all pac
 \label{sub:UDP_IP}
 
  Is faster than TCP, but it is also less reliable. UDP does not make sure all packets are delivered and in order, and it does not establish a connection before beginning or receiving transmissions.
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+		 		%
+	      		 %
+		 %
+	 %
+ %
+ %%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+
+\section{Design Flow for Distributed Systems: From Models to Networked Components }
+\label{sec:design_flow}
+
+The development of distributed control systems, under the Globally Asynchronous, Locally Synchronous (GALS) paradigm \cite{galsactd, galsborman}, often follows a structured design flow. This flow, illustrated in Figure~\ref{fig:model_to_code_mapping}, commences with a high-level system model and progresses through decomposition into components, eventually mapping these components onto specific implementation platforms with diverse network topologies. This process is fundamental to managing complexity and realizing distributed functionality, and it directly influences the selection of appropriate communication protocols.
+
+
+\begin{figure}[htbp]
+  \centering
+ \includegraphics[width=0.6\textwidth]{Chapters/Figures/model_to_code_mapping.png}
+  \caption{From models to code through model partitioning and mapping.}
+  \label{fig:model_to_code_mapping}
+\end{figure}
+
+Conceptually, this design flow can be viewed in layers, as depicted in Figure~\ref{fig:model_to_code_mapping}:
+
+\begin{itemize}
+    \item \textbf{Top Layer: System Model Definition} \\
+    At the top is the initial system model, which encapsulates the overall behavior, concurrency, and functional requirements of the embedded system. Within the context of this work, Input-Output Place-Transition (IOPT) Petri nets serve as the primary focus for this system-level specification \cite{iopttools, RefiningIOPT}. This model represents the complete, monolithic view of the controller logic before any distribution is considered.
+
+    \item \textbf{Middle Layer:Component Identification via Decomposition} \\
+    The holistic system model, as shown in Figure~\ref{fig:model_to_code_mapping}, is then subjected to partitioning, where it is divided into a set of distinct, concurrent components or sub-models. Each component typically reflects a specific functionality or a logically separable part of the overall system. Within the IOPT-Tools framework, this partitioning is achieved through formal net decomposition operations, such as net splitting (detailed in Section~\ref{sub:net_addicion}) \cite{Barrosadd, apresentacao}. This critical step transforms the single model into multiple IOPT sub-models, each representing a locally synchronous module designed to operate concurrently and interact with others. The "cutting sets" identified during decomposition define the logical interfaces and thus the necessary communication points between these emergent sub-models.
+
+    \item \textbf{Bottom Layer: Component Mapping and Network Realization} \\
+    Following decomposition, each sub-model (component) is mapped onto a specific implementation platform. These platforms can range from individual microcontrollers to dedicated processing units within a Field-Programmable Gate Array (FPGA), or even distinct software processes. As illustrated in Figure~\ref{fig:model_to_code_mapping}, the interaction between these distributed components must be realized through a defined network structure. The choice of network topology is essential and can have different variations, including:
+    \begin{itemize}
+        \item \textbf{Direct Connections:} Point-to-point links between two components, often suitable for dedicated, high-throughput, or low-latency communication.
+        \item \textbf{Shared Buses:} Several components share a common communication channel, such as a "bus" or a "bridge"-connected "multi-bus" system (Figure~\ref{fig:model_to_code_mapping}), which necessitates mechanisms (e.g., communication protocols) for arbitration and addressing.
+        \item \textbf{Network-on-Chip (NoC) Structures:} As depicted in Figure~\ref{fig:model_to_code_mapping}, NoCs provide more complex, scalable, and often packet-based communication fabrics integrated onto a single chip, suitable for systems with many interacting components.
+    \end{itemize}
+\end{itemize}
+
+This layered approach directly correlates with the \textbf{GALS paradigm}. The decomposed IOPT sub-models from the middle layer naturally form the "Locally Synchronous" (LS) islands, each potentially operating within its own clock domain \cite{galsactd}. The communication between these locally  synchronous systems (or LS islands), facilitated by the network topologies defined at the bottom layer, is inherently asynchronous, realizing the "Globally Asynchronous" (GA) nature of the system \cite{galsborman}. IOPT nets extended with Asynchronous Channels (ACs) and Time Domains (TDs) are specifically designed to model such GALS systems, where ACs represent the logical communication pathways between components operating in different TDs \cite{galsactd, iopttools}.
+
+The \textbf{IOPT net decomposition} (net splitting, Section~\ref{sub:net_addicion}) is thus a foundational step in this architectural mapping. It not only breaks down complexity but also explicitly defines the interfaces where inter-component communication is required. These interfaces, often realized as shared places or synchronized transitions in the original model, become the points where communication channels – logical at first, then physical – must be established \cite{Barrosadd}.
+
+Finally, the selection of \textbf{communication protocols} (as detailed in Section~\ref{sec:communication_support_technologies}) is intrinsically linked to the chosen network topology and the characteristics of the GALS interactions. For instance:
+\begin{itemize}
+    \item Direct connections might be implemented using UART for simple serial data exchange \cite{UARTwiki, Rao2021} or a dedicated FIFO with handshake logic for high-speed, reliable data streaming between two specific FPGAs or modules (as discussed in Section~\ref{sub:fifo+handshake}).
+    \item Shared bus topologies, as illustrated in Figure~\ref{fig:model_to_code_mapping}, naturally lend themselves to protocols like I\textsuperscript{2}C, which includes addressing for multiple devices \cite{i2c, I2Cv2}, or SPI, where multiple slaves can be managed via individual select lines \cite{spisite, spisite2}.
+    \item NoC architectures often employ more sophisticated packet-based protocols that handle routing, flow control, and error checking internally.
+\end{itemize}
+The communication channels modeled in the IOPT GALS framework, representing events or data exchange between sub-models, must be implemented using these protocols over the selected physical network. The design of the proposed automated code generation tool, central to this dissertation, aims to bridge the gap between the high-level specification of these decomposed IOPT sub-models and the concrete implementation of the communication logic using these diverse protocols and their underlying topological assumptions.
+
+
+
 
 
 %%%%%%%%%%%%%%
