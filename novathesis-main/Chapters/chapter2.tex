@@ -266,19 +266,26 @@ UART communication does not rely on a shared clock signal, instead communicating
 
 
 
-\subsection{FIFO + Handshake - In progress}
+\subsection{FIFO + Handshake}
 \label{sub:fifo+handshake}
 
-FIFO, short for First-In-First-Out, is a protocol that utilizes buffers together with handshake signals. Is a memory buffer that stores data elements in the order of their arrival and retrieves them in the same sequence, thereby adhering to the 'first-in, first-out' principle. To manage and facilitate the data flow of this buffer effectively, the handshake is used, it prevents issues such as corruption or data loss.This communication involves three primary signals: the data bus, which carries the actual information; a valid signal, asserted by the sender or source interface to indicate that the data is stable and available for transfer; and a ready signal, asserted by the receiver or destination interface to signify its preparedness to accept new data. The use of these signals ensures that no data is lost or overwritten and allows for an asynchronous communication system. Such a mechanism is highly efficient, fully decouples the sender and receiver, and is particularly well-suited for implementations in Field-Programmable Gate Arrays (FPGAs) or hardware-in-the-loop systems.
+FIFO, short for First-In-First-Out, is a protocol that utilizes buffers together with handshake signals. It is a memory buffer that stores data elements in the order of their arrival and retrieves them in the same sequence, thereby adhering to the 'first-in, first-out' principle \cite{wakerly2006}. To manage and facilitate the data flow of this buffer effectively, a handshake is used, which prevents issues such as corruption or data loss. This communication involves three primary signals: the data bus, which carries the actual information; a valid signal, asserted by the sender or source interface to indicate that the data is stable and available for transfer; and a ready signal, asserted by the receiver or destination interface to signify its preparedness to accept new data \cite{arm_axi}. The use of these signals ensures that no data is lost or overwritten and allows for an asynchronous communication system. Such a mechanism is highly efficient, fully decouples the sender and receiver, and is particularly well-suited for implementations in Field-Programmable Gate Arrays (FPGAs) or hardware-in-the-loop systems, often for crossing clock domains \cite{bening2002}. 
 
 
-
-\subsection{IP - In progress}
+\subsection{IP}
 \label{sub:ip}
 
-The Internet Protocol (IP) is a protocol, or set of rules, for routing and addressing packets of data so that they can travel across networks and arrive at the correct destination. Data traversing the Internet is divided into smaller pieces, called packets. IP information is attached to each packet, and this information helps routers to send packets to the right place. Every device or domain that connects to the Internet is assigned an IP address, and as packets are directed to the IP address attached to them, data arrives where it is needed.
+IP, the Internet Protocol is a standard for directing and labeling data packets. These standards enable the packets to navigate various networks and reach their intended recipient accurately. These packets are essentially data traversing the Internet that was divided into smaller pieces. IP information is attached to each packet, and this information helps routers to send packets to the right place. An IP address is allocated to each device or domain linked to the Internet. This address directs packets, ensuring data reaches its intended destination~\cite{ip2024}.
 
-Once the packets arrive at their destination, they are handled differently depending on which transport protocol is used in combination with IP. The most common transport protocols are TCP and UDP.
+At the destination, received packets undergo processing according to the specific transport protocol integrated with IP. The most frequently employed transport protocols include TCP and UDP, each dictating unique handling procedures.
+
+\begin{enumerate}
+    \item \textbf{TCP} Transmission Control Protocol is a connection-oriented protocol designed to provide a reliable, ordered, and error-checked stream of data between applications, a definition established by its original specification \cite{rfc793} and taught widely in foundational networking texts \cite{kurose2021}. It establishes a connection via a three-way handshake before data transmission begins, a process detailed exhaustively in technical literature \cite{stevens1994}. To ensure reliability, TCP uses mechanisms such as sequence numbers, acknowledgments, and retransmission of lost packets \cite{rfc793}. This makes it suitable for applications where data integrity and order are paramount, though the overhead associated with these features can introduce latency, a well-documented trade-off for its reliability \cite{kurose2021, stevens1994}.
+    \item \textbf{UDP} User Datagram Protocol provides a much simpler, connectionless service. It allows applications to send messages, known as datagrams, to other hosts without prior communication to set up special transmission channels \cite{rfc768}. UDP is considered an unreliable protocol as it does not guarantee delivery, order, or duplicate protection \cite{kurose2021}. Its primary advantage is low latency due to the minimal protocol overhead, making it suitable for time-sensitive applications where occasional packet loss is acceptable \cite{forouzan2010}. 
+
+\end{enumerate}
+
+
 \subsubsection{TCP/IP - In progress}
 \label{sub:TCP_IP}
 
@@ -288,6 +295,12 @@ TCP is designed for reliability, not speed. Because TCP has to make sure all pac
 \label{sub:UDP_IP}
 
  Is faster than TCP, but it is also less reliable. UDP does not make sure all packets are delivered and in order, and it does not establish a connection before beginning or receiving transmissions.
+ 
+ 
+ 
+ 
+ 
+ 
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%
