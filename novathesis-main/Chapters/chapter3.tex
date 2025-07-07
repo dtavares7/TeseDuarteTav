@@ -21,38 +21,7 @@
 The proposed implementation facilitates code generation within the IOPT tool suite through an enhanced graphical user interface. As depicted in Figure~\ref{fig:butao}, the solution introduces a new button that initiates a guided configuration workflow. Upon initiation, a window is presented (Figure~\ref{fig:11}), prompting the user to select the requisite input files in the .pnml format. Following file selection, the user proceeds to define the system's communication channels and assign the desired communication technology for each channel of data, with options including I2C, SPI, UART, and FIFO with Handshake, as shown in Figure ~\ref{fig:12}. The final window in this workflow, illustrated in Figure~\ref{fig:improgress}, allows for the selection of protocol-specific characteristics (e.g., rate, SPI clock modes, or I2C addresses) characteristics and the designation of the target output language, such as C or VHDL.
  
  
-The generated code will be designed to be implemented within the Receiver/Transmitter module of each controller (Figure~\ref{fig:representation}). This targeted code placement aims to ensure seamless integration with the existing controller logic, thereby reducing development effort, minimizing manual coding errors, and enhancing the overall utility of the IOPT-Tools framework for complex distributed applications.
-
-
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/butao.png}
-  \caption{Solution representation.}
-  \label{fig:butao}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/11.png}
-  \caption{Solution representation2.}
-  \label{fig:11}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/12.png}
-  \caption{Solution representation3.}
-  \label{fig:12}
-\end{figure}
- 
- 
- \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/Diagrama.png}
-  \caption{Solution representation.}
-  \label{fig:representation}
-\end{figure}
+The generated code will be designed to be implemented within the communication module of each controller (Figure~\ref{fig:representation}). This targeted code placement aims to ensure seamless integration with the existing controller logic, thereby reducing development effort, minimizing manual coding errors, and enhancing the overall utility of the IOPT-Tools framework for complex distributed applications.
 
 
 
