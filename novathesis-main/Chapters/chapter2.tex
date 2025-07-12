@@ -18,7 +18,7 @@
 \setlength\epigraphwidth{12.5cm}
 \setlength\epigraphrule{0pt}
 
-This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses GALS (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including I2C, SPI, UART, RS-485 and FIFO with hanshake, evaluating their suitability and ensuring effective communication within the distributed IOPT controller system .Finally, the chapter introduces the IOPT-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
+This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses GALS (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including I2C, SPI, UART, RS-485 and FIFO with handshake, evaluating their suitability and ensuring effective communication within the distributed IOPT controller system .Finally, the chapter introduces the IOPT-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
 
 \section{Petri Nets}
 \label{sec:petri_nets}
@@ -38,7 +38,7 @@ In subsequent decades, the theoretical foundations of Petri nets were strengthen
 Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets, Input-Output Place-Transition(IOPT) among others were introduced to better meet these needs. 
 
 
-To manage this diversity, the term \textbf{Place/Transition net (P/T net)} was established as the standard name for the classical formalism, a standardization heavily influenced by seminal works such as Murata's~\cite{murata}. This P/T net serves as the foundational model from which the advanced types mentioned above are derived. Essentially, every advanced Petri net is an extension of the classical P/T net, inheriting its fundamental concepts of places, transitions, and firing rules. A firm grasp of the P/T net definition is therefore a prerequisite for understanding its more complex variants.
+To manage this diversity, the term \textbf{Place/Transition net (P/T net)} was established as the standard name for the classical formalism, a standardization heavily influenced by seminal works such as Murata's~\cite{murata}. This P/T net serves as the foundational model from which the advanced types mentioned above are derived from. Essentially, every advanced Petri net is an extension of the classical P/T net, inheriting its fundamental concepts of places, transitions, and firing rules. A firm grasp of the P/T net definition is therefore a prerequisite for understanding its more complex variants.
 
 Place/Transition nets are a bipartite directed‐graph formalism comprising of primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
 
@@ -71,7 +71,7 @@ The formal definition of a P/T net states that a Petri net \( PN \) is defined a
 A Petri net structure \( N = (P, T, F, W) \) without an initial marking is denoted by \( N \) and a Petri net with an initial marking is denoted by \( (N, M_0) \).
 
 
-Figure~\ref{fig:petrinet} presents aPlace/Transition net that models the execution and synchronization of two parallel processes. The model demonstrates a classic fork-join structure, where concurrent tasks are initiated by transition $T_0$ and must both be completed before synchronizing at transition $T_3$ to continue the cycle.
+Figure~\ref{fig:petrinet} presents a Place/Transition net that models the execution and synchronization of two parallel processes. The model demonstrates a classic fork-join structure, where concurrent tasks are initiated by transition $T_0$ and must both be completed before synchronizing at transition $T_3$ to continue the cycle.
 
 
 \begin{figure}[htbp]
@@ -191,7 +191,7 @@ TDs_p : P \rightarrow \text{IN}, \quad TDs_t : T \rightarrow \text{IN}, \quad TD
 
 
 
-The integration of GALS into IOPT Petri nets involves decomposing a global system model into locally synchronous modules that communicate asynchronously. This decomposition creates TD and AC, it facilitates modular design, enabling each module to operate at its own pace without the need for global synchronization, thus improving scalability and flexibility \cite{moutinho2011petri}.
+The integration of GALS into IOPT Petri nets involves decomposing a global system model into locally synchronous modules that communicate asynchronously. This decomposition creates TD and AC, it facilitates modular design, enabling each module to operate at its own pace without the need for global synchronization, thus improving scalability and flexibility \cite{galsactd}.
 
 
 

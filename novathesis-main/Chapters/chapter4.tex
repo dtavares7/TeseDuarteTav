@@ -18,5 +18,20 @@
 \chapter{Conclusion}
 \label{cha:conclusion}
 
-This Chapter aims to conclude the conclusion
+This dissertation plan addressed a critical gap in the development of distributed control systems using IOPT Petri nets within the IOPT-Tools environment. While IOPT-Tools provides robust support for modeling, verifying, and generating code for individual controller sub-models, it lacked automated mechanisms for establishing communication between distributed sub-models, an essential requirement for systems designed under the GALS paradigm.
 
+The research began by reviewing the theoretical foundations of Petri nets, GALS architectures, and relevant communication protocols, establishing a comprehensive context for the problem. Through this analysis, the limitations of current tools, particularly the need for manual implementation of communication between the controllers,were clearly identified. This motivated the primary objective: to design and develop an automated code generation tool capable of producing the necessary communication infrastructure for distributed IOPT sub-models.
+
+The proposed solution was characterized by its ability to configure and generate the communication channel between two controllers. This method simplifies the development process, minimizes manual coding mistakes, and improves the scalability and maintainability of distributed control systems.
+
+Key outcomes and contributions include:
+\begin{itemize}
+    \item Design and Implementation of an automated code generation mechanism, integrated within the IOPT-Tools workflow, bridging the gap between high-level modeling and practical deployment.
+
+    \item Validation and Testing through representative case studies, demonstrating the effectiveness and reliability of the generated communication infrastructure.
+\end{itemize}
+
+
+By automating the generation of communication channels code, this work significantly extends the capabilities of IOPT-Tools, empowering researchers and engineers to develop more complex, distributed control systems with greater efficiency and confidence. The tool developed here lays a strong foundation for future research and enhancements, such as supporting additional communication protocols, optimizing generated code for specific platforms, and further integrating verification and simulation features.
+
+Continued development in this direction will help realize the full potential of model-driven engineering in distributed embedded systems, reducing development effort while ensuring system correctness and robustness.
