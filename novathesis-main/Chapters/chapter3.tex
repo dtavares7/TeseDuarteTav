@@ -26,30 +26,17 @@
 \section{Overall Architecture of the Automated Generation Tool}
 \label{sec:overall_architecture}
 
-This section provides an expanded characterization of the proposed solution, focusing on the architecture of the automated code generation tool. This tool, developed for integration within the IOPT-Tools ecosystem, is implemented as an API that translates abstract model specifications into executable code. Its architectural framework is systematically delineated by three primary components: the required inputs, the core transformation logic, and the resultant code outputs.
+This section provides an expanded characterization of the proposed solution, focusing on the architecture of the automated code generation tool. This tool, developed for integration within the IOPT-Tools ecosystem, is implemented as an API that translates abstract model specifications into executable code. Its architectural framework is systematically delineated by three stages: the required inputs, the core transformation logic, and the resultant code outputs.
 
-\subsection{Inputs}
-The tool requires a set of specific artifacts to initiate the code generation process. These inputs provide the necessary information about the system's structure and desired behavior:
-\begin{itemize}
-    \item \textbf{Decomposed IOPT Sub-models:} The primary input consists of the set of IOPT Petri net sub-models that result from the formal net splitting operation within IOPT-Tools.
-    \item \textbf{Communication Configuration:} A set of user-provided parameters that specify the communication infrastructure. This input defines the desired communication protocol (e.g., I\textsuperscript{2}C, SPI, UART) and its corresponding settings (e.g., device addresses, bus speed, pin assignments).
-\end{itemize}
+\paragraph{Inputs.}
+The inputs consist primarily of the decomposed IOPT Petri net sub-models obtained from the formal net-splitting operation within IOPT-Tools. These models provide the structural foundation for the system to be implemented. In addition, the tool requires a communication configuration defined by the user, which specifies the desired communication protocol—such as I\textsuperscript{2}C, SPI, or UART—along with its corresponding parameters, including device addresses, bus speed, and pin assignments.
 
-\subsection{Processing Logic}
-The core of the tool is its processing engine, which translates the abstract model into an implementation plan. This involves several steps:
-\begin{itemize}
-    \item \textbf{Model Parsing:} The tool first parses the PNML representation of the IOPT sub-models to build an internal representation of the distributed system's structure.
-    \item \textbf{Channel Identification:} It analyzes the interface definitions (cutting sets) and Time Domain (TD) annotations to identify all required communication channels. For example, it flags an interaction between a transition in TD1 and a transition in TD2 as a necessary communication link.
-    \item \textbf{Protocol Mapping:} Based on the characteristics of each identified channel and user configuration, the tool maps the abstract communication requirement to the specific semantics of a chosen protocol. An event trigger might be mapped to a single command byte, while a data transfer might be mapped to a multi-byte packet.
-\end{itemize}
+\paragraph{Processing Logic.}
+At its core, the tool employs a processing engine that convertsact models into an implementation plan. This process begins with parsing the PNML representation of the IOPT sub-models in order to build an internal representation of the distributed system. It then analyzes interface definitions, namely cutting sets, together with Time Domain (TD) annotations, to identify the communication channels required for coordination between submodels. For example, if a transition in TD1 interacts with a transition in TD2, the tool establishes a communication link between them. Finally, each identified channel is mapped to the semantics of the selected protocol, according to its characteristics and the configuration provided by the user. An event trigger, for instance, may be translated into a single command byte, whereas a data transfer may be represented as a multibyte packet.
 
-\subsection{Outputs}
-Upon completion of its processing logic, the tool generates a collection of software artifacts required to compile and deploy the distributed system:
-\begin{itemize}
-    \item \textbf{Source Code:} The primary output is the C or VHDL source code that implements the communication logic for each sub-model.
-    \item \textbf{Configuration Headers:} Automatically generated header files containing definitions for the system, such as slave addresses, command identifiers, and buffer sizes.
-    \item \textbf{Integration Artifacts:} Potentially, the tool could also generate supporting files like makefiles or project files to further simplify the integration and compilation process.
-\end{itemize}
+\paragraph{Outputs.}
+Once processing is complete, the tool generates the necessary software code to compile and deploy the distributed system. The primary output consists of C source code that implements the communication logic for each sub-model. To support integration, the tool also produces configuration headers that contain system-level definitions, such as slave addresses, command identifiers, and buffer sizes. In addition, auxiliary artifacts can be created, such as makefiles or project files, which further simplify the integration and compilation process.
+
 
 \section{Mapping Model Constructs to Implementation Primitives}
 \label{sec:mapping_constructs}
@@ -86,24 +73,17 @@ For this example, a multi-slave bus architecture was assumed, making the I\texts
 \section{I\textsuperscript{2}C Communication Implementation}
 \label{sec:i2c_implementation}
 
-\subsection{Library Utilization}
-The communication channel is implemented using the standard \texttt{Wire} library, which provides a high-level interface for configuring and operating the I\textsuperscript{2}C bus on embedded controllers. This library supports both master and slave roles, synchronous data transmission, and interrupt-driven message reception.
+\subsection{I\textsuperscript{2}C Communication Setup}
+The implementation of the communication channel relies on the standard \texttt{Wire} library, which offers a high-level interface for configuring and operating the I\textsuperscript{2}C bus on embedded controllers. This library supports both master and slave roles, synchronous data transmission, and interrupt-driven message reception, thus ensuring reliable communication across distributed components.
 
-\subsection{Configuration}
-The I\textsuperscript{2}C bus requires two signal lines and a common ground connection:
-\begin{itemize}
-    \item \textbf{SDA (Serial Data):} GPIO~21
-    \item \textbf{SCL (Serial Clock):} GPIO~22
-\end{itemize}
-Although these pin assignments correspond to the default mapping of the \texttt{Wire} library for the target platform, they are not explicitly defined in the generated code. Pull-up resistors are used on both lines in accordance with the I\textsuperscript{2}C protocol specification to ensure reliable signal levels. The master device initializes the bus using \texttt{Wire.begin()} without an address parameter, whereas the slave device specifies its own address using \texttt{Wire.begin(I2C\_SLAVE\_ADDRESS)} to enable message reception.
+The I\textsuperscript{2}C bus requires two signal lines, SDA and SCL, together with a common ground connection. In the code generated by the tool, these signals correspond to GPIO~21 and GPIO~22, respectively. Although these assignments follow the default mapping of the \texttt{Wire} library, they are not explicitly defined in the generated code. To guarantee stable signal levels, both lines need to be equipped with pull-up resistors, as prescribed by the I\textsuperscript{2}C protocol specification. During initialization, the master device invokes \texttt{Wire.begin()} without an address parameter, while each slave device calls \texttt{Wire.begin()} with its assigned address, allowing message reception.
 
-\subsection{Generated Input Definitions}
-In addition to library-based configuration, certain I\textsuperscript{2}C parameters are provided by the code generation tools and embedded into the program as preprocessor directives. For instance:
+In addition to the library configuration, certain I\textsuperscript{2}C parameters are automatically introduced by the code generation tools and embedded in the program as preprocessor directives. An example is shown below:
 \begin{verbatim}
 #define I2C_SLAVE_ADDRESS      0x09   // Address assigned to this device
 #define CMD_TRIGGER_EVENT9     0xA2   // Command linked to Petri net event
 \end{verbatim}
-These constants ensure that device addressing and event-triggering commands remain consistent with the model-level specification from which the code is derived.
+These constants ensure that device addressing and event-triggering commands remain consistent with the model-level specification from which the code is derived, while also simplifying the integration of communication logic into the final implementation.
 
 \subsection{Message Transmission (Master Side)}
 Whenever a Petri net output event must be communicated to a slave device, the master initiates a write operation on the bus. To support communication with multiple slave devices, the message transmission logic is generalized into the following function:
@@ -177,31 +157,24 @@ This design decouples the asynchronous arrival of I\textsuperscript{2}C messages
 \section{UART Communication Implementation}
 \label{sec:uart_implementation}
 
-\subsection{Library Utilization}
-The UART communication is implemented using the \texttt{HardwareSerial} class provided by the ESP32 framework. This library enables full-duplex serial communication over dedicated RX/TX pins, supporting multiple UART interfaces on the controller. The generated code employs a secondary hardware serial interface (\texttt{MySerial}) configured with a baud rate of 115200 and standard serial framing (\texttt{SERIAL\_8N1}).
 
-\subsection{Input Definitions}
-Both the pin assignments and the UART message identifiers are defined by the user as inputs to the code generation tool. These inputs are automatically transformed into preprocessor definitions and constant values in the generated code, ensuring a direct mapping between the model-level specification and the executable program.
+\subsection{UART Communication Setup}
+UART communication is implemented using the \texttt{HardwareSerial} class provided by the ESP32 framework. This library enables full-duplex serial communication over dedicated RX and TX pins and supports multiple UART interfaces on the controller. In the generated code, a secondary hardware serial interface (\texttt{MySerial}) is employed, configured with a baud rate of 115200 and standard serial framing (\texttt{SERIAL\_8N1}).
 
-\noindent
-For pin assignments, the tool generates:
+The necessary input parameters, including pin assignments and UART message identifiers, are defined by the user and processed by the code generation tool. These parameters are automatically converted into preprocessor directives and constant values, ensuring a direct correspondence between the model-level specification and the executable program. For instance, the pin configuration is expressed as:
 \begin{verbatim}
 #define RXD2 16   // UART Receive pin
 #define TXD2 17   // UART Transmit pin
 \end{verbatim}
 
-\noindent
-For message identifiers linked to Petri net events, the tool generates:
+Similarly, the message identifiers associated with Petri net events are introduced as constant string definitions:
 \begin{verbatim}
 const String MESSAGE_UART_EVENT43 = "TRIGGER_EVENT43";
 const String MESSAGE_UART_EVENT52 = "TRIGGER_EVENT52";
 \end{verbatim}
+This mechanism ensures consistency between the logical communication events defined at the model level and their implementation in the generated code, while maintaining clarity and reducing the risk of mismatches.
 
-\noindent
-This approach guarantees that the physical configuration (pins) and the logical communication events (messages) remain consistent across model specification and generated code.
-
-\subsection{Initialization}
-The initialization routine establishes both the debugging channel (\texttt{Serial}) and the application channel (\texttt{MySerial}):
+Finally, the initialization routine establishes both the debugging channel (\texttt{Serial}) and the application channel (\texttt{MySerial}), as illustrated below:
 \begin{verbatim}
 void setupUart() {
     Serial.begin(115200);
@@ -209,6 +182,9 @@ void setupUart() {
     Serial.println("UART communication initialized.");
 }
 \end{verbatim}
+This procedure guarantees that the UART communication infrastructure is fully operational at runtime, thereby enabling reliable message exchange between the components of the distributed system.
+
+
 
 \subsection{Bidirectional Communication}
 Unlike the I\textsuperscript{2}C bus, UART does not distinguish between master and slave roles. Instead, both controllers can transmit and receive messages independently over their TX/RX lines. The generated code therefore provides symmetric functions for sending and receiving messages.
@@ -260,34 +236,25 @@ This ensures that both pin assignments and message identifiers, provided as inpu
 \section{TCP Communication with MQTT}
 \label{sec:tcp_mqtt_implementation}
 
-\subsection{Library Utilization}
-TCP/IP communication is implemented through the Wi-Fi and MQTT protocols using the \texttt{WiFi.h} and \texttt{PubSubClient.h} libraries. The Wi-Fi library provides network connectivity over IEEE~802.11, while the MQTT client library manages lightweight publish/subscribe communication over TCP. This design enables distributed controllers to exchange Petri net events through a broker-based infrastructure.
+\subsection{TCP/IP Communication Setup}
+TCP/IP communication is implemented using the Wi-Fi and MQTT protocols using the \texttt{WiFi.h} and \texttt{PubSubClient.h} libraries. The Wi-Fi library provides network connectivity over IEEE~802.11, while the MQTT client library manages lightweight publish/subscribe communication on top of TCP. This architecture enables distributed controllers to exchange Petri net events within a broker-based infrastructure.
 
-\subsection{Input Definitions}
-All network and protocol parameters are defined by the user as inputs to the code generation tool. These include:
-\begin{itemize}
-    \item \textbf{Wi-Fi credentials:} SSID and password for network access.
-    \item \textbf{MQTT broker settings:} hostname/IP address and port number.
-    \item \textbf{Client identifier:} a unique string for each device, e.g.,
+All network and protocol parameters are defined by the user and processed by the code generation tool, which embeds them directly into the generated code. These parameters include Wi-Fi credentials (SSID and password), MQTT broker settings (hostname or IP address and port) and a unique client identifier for each device, for example:
 \begin{verbatim}
 const char* client_id_TD_2 = "ESP32_IOPT_TD_2";
 \end{verbatim}
-    \item \textbf{MQTT topics:} communication channels used for subscribing and publishing, e.g.,
+The communication channels are defined as MQTT topics which specify the subscriptions and publications required for event exchange, such as:
 \begin{verbatim}
 const char* topic_sub = "device/events/commands"; // Topic to subscribe
 const char* topic_pub = "device/events/commands"; // Topic to publish
 \end{verbatim}
-    \item \textbf{Event messages:} strings associated with Petri net events, e.g.,
+Finally, the messages corresponding to Petri net events are expressed as string constants, ensuring direct traceability between the model specification and the runtime communication, for example:
 \begin{verbatim}
 const char* message_event40 = "Action_Triggered_By_Event_40";
 const char* message_event46 = "Action_Triggered_By_Event_46";
 \end{verbatim}
-\end{itemize}
-These parameters are automatically embedded into the generated code, ensuring consistency between the model specification and runtime communication.
 
-
-\subsection{Initialization}
-The initialization routine connects the device to the Wi-Fi network and configures the MQTT client:
+The initialization routine establishes the network connection and configures the MQTT client. First, the device connects to the Wi-Fi network using the provided credentials, after which the MQTT client is initialized with the broker settings. The corresponding procedure is shown below:
 \begin{verbatim}
 void tcpMqttInitializeIO() {
     Serial.begin(115200);
@@ -302,7 +269,9 @@ void tcpMqttInitializeIO() {
     client.setCallback(callback);
 }
 \end{verbatim}
-The \texttt{callback} function is registered to process incoming MQTT messages and translate them into Petri net events.
+The \texttt{callback} function is registered to process incoming MQTT messages and translate them into Petri net events, thereby enabling event-driven communication between distributed components.
+
+
 
 \subsection{Receiving Messages}
 Whenever a subscribed message arrives, the callback function is triggered. The payload is compared with the generated event message strings, and the corresponding flags are updated:
@@ -343,4 +312,16 @@ client.publish(topic_pub, message_event40);
 This approach allows the generated code to remain fully generic: the publish topic can be configured per device through the code generation tool. One controller can broadcast event activations, while other controllers subscribed to the corresponding topic receive them and map them into their own Petri net execution cycle.
 
 \subsection{Communication Model}
-In contrast to I\textsuperscript{2}C (master/slave) and UART (peer-to-peer), MQTT follows a broker-based publish/subscribe model. Each controller can both publish and subscribe to topics, enabling fully distributed event communication. The use of predefined message identifiers ensures deterministic mapping between Petri net events and TCP/MQTT messages in the generated code.
+In contrast to \gls{i2c} (master/slave) and \gls{uart} (peer-to-peer), \gls{mqtt} follows a broker-based publish/subscribe model. Each controller can both publish and subscribe to topics, enabling fully distributed event communication. The use of predefined message identifiers ensures deterministic mapping between Petri net events and TCP/MQTT messages in the generated code.
+
+\gls{RX}
+\gls{RX}
+
+
+
+
+
+
+
+
+
