@@ -8,8 +8,8 @@
 
 \typeout{NT FILE chapter2.tex}%
 
-\chapter{Work plan}
-\label{cha:work_plan}
+\chapter{System Design and Implementation}
+\label{cha:chap_3}
 
 
 %falar como emular o scenario
@@ -18,25 +18,269 @@
 %fazer um desenho das liga;oes
 %tirar foto ao setup
 
- The IOPT-Tools environment provides robust support for modeling, verifying, and generating code for individual controller sub-models using \gls{iopt} (\gls{iopt}) Petri nets \cite{iopttools, barros2004, RefiningIOPT}. However, a notable challenge arises in distributed control systems, particularly those adhering to the \gls{gals} (\gls{gals}) paradigm, where decomposed sub-models require inter-communication \cite{galsactd, Barrosadd}. As identified in Section~\ref{subsec:communication_gap}, the existing automatic code generation primarily focuses on the internal logic of each sub-model, necessitating manual implementation of the communication links between them. This manual process is not only time-consuming but also highly prone to error, leading to significant challenges in debugging and system validation. This dissertation directly addresses this gap by proposing an automated code generation tool.
- 
- The core objective is to develop a mechanism that analyzes decomposed \gls{iopt} sub-models, OBTAIN THROUH DECOMPOSE GALS IN IOPT-TOOLS and automatically generates the necessary communication infrastructure code, thereby streamlining the development of distributed control systems and automating the creation of efficient and reliable data exchange pathways.
- 
- 
-\section{Overall Architecture of the Automated Generation Tool}
-\label{sec:overall_architecture}
 
-This section provides an expanded characterization of the proposed solution, focusing on the architecture of the automated code generation tool. This tool, developed for integration within the IOPT-Tools ecosystem, is implemented as an \gls{api} that translates abstract model specifications into executable code. Its architectural framework is systematically delineated by three stages: the required inputs, the core transformation logic, and the resultant code outputs.
+As discussed in Section~\ref{subsec:communication_gap}, the IOPT-Tools environment provides robust support for modeling, verifying, and generating code for individual controller sub-models specified with \gls{iopt} Petri nets \cite{iopttools, barros2004, RefiningIOPT}. However, a significant limitation arises in distributed control systems, particularly under the \gls{gals} paradigm, where decomposed sub-models require intercommunication \cite{galsactd, Barrosadd}. Current automatic code generation within IOPT-Tools focuses primarily on the internal logic of each sub-model, leaving the implementation of communication links to be carried out manually. This process is time-consuming, error-prone and poses substantial challenges for debugging and validation.  
 
-\paragraph{Inputs.}
-The inputs consist primarily of the decomposed \gls{iopt} Petri net sub-models obtained from the formal net-splitting operation within IOPT-Tools. These models provide the structural foundation for the system to be implemented. In addition, the tool requires a communication configuration defined by the user, which specifies the desired communication protocol—such as \gls{i2c}, \gls{spi}, or \gls{uart}—along with its corresponding parameters, including device addresses, bus speed, and pin assignments.
+The objective of this dissertation is to address this gap by proposing an automated code generation tool capable of analyzing decomposed \gls{iopt} sub-models obtained through the decomposition of GALS systems in IOPT-Tools and automatically producing the necessary communication infrastructure code. In doing so, the tool streamlines the development of distributed control systems and ensures efficient and reliable data exchange pathways.  
 
-\paragraph{Processing Logic.}
-At its core, the tool employs a processing engine that convertsact models into an implementation plan. This process begins with parsing the \gls{pnml} representation of the \gls{iopt} sub-models in order to build an internal representation of the distributed system. It then analyzes interface definitions, namely cutting sets, together with \gls{td} (\gls{td}) annotations, to identify the communication channels required for coordination between submodels. For example, if a transition in TD1 interacts with a transition in TD2, the tool establishes a communication link between them. Finally, each identified channel is mapped to the semantics of the selected protocol, according to its characteristics and the configuration provided by the user. An event trigger, for instance, may be translated into a single command byte, whereas a data transfer may be represented as a multibyte packet.
+This chapter presents the design, implementation, and validation of the proposed tool. It begins with an overview of the system architecture, developed as a web-based Application Programming Interface (API) integrated within the IOPT-Tools ecosystem. The chapter then details the transformation pipeline, from model inputs to generated code outputs, and provides a formal specification of the API endpoints and parameters. Subsequently, the generated C++ code is analyzed with respect to three communication protocols: I²C, UART, and TCP/MQTT. Finally, the chapter outlines the validation methodology used to assess both the correctness and reliability of the tool’s output.  
 
-\paragraph{Outputs.}
-Once processing is complete, the tool generates the necessary software code to compile and deploy the distributed system. The primary output consists of \gls{c} source code that implements the communication logic for each sub-model. To support integration, the tool also produces configuration headers that contain system-level definitions, such as slave addresses, command identifiers, and buffer sizes. In addition, auxiliary artifacts can be created, such as makefiles or project files, which further simplify the integration and compilation process.
 
+% ===================================================================
+% Section 3.1
+% ===================================================================
+
+\section{System Architecture and Design Rationale}
+\label{sec:architecture}
+
+The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}(mudar), which resides on a web server and is responsible for processing all incoming requests.
+
+
+
+\begin{enumerate}
+    \item \textbf{User Request:} The user constructs a Hypertext Transfer Protocol (HTTP) GET request that contains a set of URL parameters. These parameters specify the desired communication protocol and its configuration, as detailed in Section 3.3(mudar).
+    \item \textbf{Server-Side Processing:} The web server receives the request and forwards it to the \texttt{gals.php}(mudar) script. The script parses and validates the input parameters, selects the appropriate code template based on the chosen protocol, and dynamically populates it with the user-provided values.
+    \item \textbf{Code Generation:} The script generates the complete C++ source code tailored to the user's specifications. In the event of invalid or missing parameters, the script generates an appropriate HTTP 400 error response.
+    \item \textbf{HTTP Response:} The server sends the generated code back to the user within an HTTP response, typically rendered as plain text in the browser.
+\end{enumerate}
+
+\begin{figure}[h!]
+    \centering
+    % In your actual document, you would use \includegraphics{path/to/your/diagram.png}
+    % The tag below is a placeholder to represent the visual diagram.
+    
+    \caption{The architectural workflow of the code generation API, from user request to the generated code response.(mudar)}
+    \label{fig:api_workflow}
+\end{figure}
+
+% ===================================================================
+% Section 3.2
+% ===================================================================
+
+\subsection{Design Rationale}
+\label{subsec:design_rationale}
+
+A Web API was chosen over a standalone desktop application or a command-line tool primarily for its inherent **platform independence** and **accessibility**. This approach eliminates the need for users to install any specialized software; the tool can be accessed from any device with a web browser or a standard HTTP client. This aligns with the web-based nature of the IOPT-Tools environment itself.
+
+The choice of PHP as the implementation language for the proposed tool was motivated by several considerations. First, PHP is inherently designed as a server-side scripting language, well suited for handling web requests and generating dynamic content, which constitutes the core functionality of the tool. Second, since code generation is fundamentally a text manipulation task, the extensive library of built-in string processing functions of PHP greatly facilitated the development of the code templating engine. Third, PHP remains one of the most widely deployed back-end languages, with near-universal support across web hosting providers, thereby ensuring that the tool is both easily deployable and maintainable. Finally, the decision aligns strategically with the IOPT-Tools ecosystem, which itself is structured as a comprehensive web-based development environment. The adoption of a prominent server-side technology such as PHP thus maximizes architectural compatibility and establishes a clear path toward seamless integration of the code generation tool into the main IOPT-Tools web interface.
+
+Although modern APIs often employ POST requests with JSON payloads, a simpler GET-based interface was selected for this application, as it offers several advantages particularly suited to the intended use case. First, GET requests can be constructed and tested directly in a web browser's address bar, greatly facilitating debugging, demonstration, and user adoption; this approach is explicitly supported through the tool’s dedicated help page (\texttt{help.php}). Second, since each code generation request represents an independent and self-contained transaction, the stateless nature of GET requests provides a natural fit, eliminating the need to maintain server-side session state between consecutive requests. Finally, a complete API call, including all its parameters, is encapsulated within a single URL. This feature enhances usability by allowing users to easily save, bookmark, and share specific code generation configurations.
+
+
+% ===================================================================
+% Section 3.3: 
+% ===================================================================
+
+\section{Application Programming Interface (API) Specification}
+\label{sec:api_spec}
+
+This section provides a formal specification of the Application Programming Interface (API) for the code generation tool. The API is designed to be accessed via HTTP GET requests, with all configuration options passed as URL parameters.
+
+The base endpoint for the API corresponds to the server location of the main script, as illustrated below:
+\begin{verbatim}
+    http://<server_address>/gals.php
+\end{verbatim}
+
+Every API request must include three global parameters that define the context for the code generation. These are detailed in Table \ref{tab:global_params}.
+
+\begin{table}[h!]
+    \centering
+    \caption{Global API Parameters}
+    \label{tab:global_params}
+    \begin{tabular}{|l|c|p{9cm}|}
+        \hline
+        \textbf{Parameter} & \textbf{Status} & \textbf{Description} \\ \hline
+        \texttt{protocol} & Mandatory & Specifies the communication protocol. Must be one of: \texttt{i2c}, \texttt{uart}, or \texttt{tcp}. \\ \hline
+        \texttt{projectName} & Mandatory & A C-identifier compliant string defining the project name, used for function naming in the generated code. \\ \hline
+        \texttt{eventName} & Mandatory & A C-identifier compliant string defining the specific event to be handled. \\ \hline
+    \end{tabular}
+\end{table}
+
+% -------------------------------------------------------------------
+% Subsection for each protocol
+% -------------------------------------------------------------------
+\subsection{Protocol-Specific Parameters}
+\label{subsec:protocol_params}
+
+In addition to the global parameters, each protocol requires or accepts a unique set of parameters to configure its behavior according to the protocol needs.
+
+\paragraph{I²C Protocol.} For I²C communication, the parameters specified in Table \ref{tab:i2c_params} are required.
+
+\begin{table}[h!]
+    \centering
+    \caption{API Parameters for the I²C Protocol}
+    \label{tab:i2c_params}
+    \begin{tabular}{|l|c|l|p{6cm}|}
+        \hline
+        \textbf{Parameter} & \textbf{Status} & \textbf{Type} & \textbf{Description} \\ \hline
+        \texttt{slaveAddress} & Mandatory & Integer & The 7-bit address of the slave device. Valid range: 8–119. \\ \hline
+        \texttt{slaveMessage} & Mandatory & Char / Int & The command byte, which may be specified either as a single ASCII character or as an integer value (0–127). \\ \hline
+    \end{tabular}
+\end{table}
+
+\paragraph{UART Protocol.} The UART protocol interface offers several optional parameters for fine-tuning the serial communication, as detailed in Table \ref{tab:uart_params}.
+
+\begin{table}[h!]
+    \centering
+    \caption{API Parameters for the UART Protocol}
+    \label{tab:uart_params}
+    \begin{tabular}{|l|c|l|p{6cm}|}
+        \hline
+        \textbf{Parameter} & \textbf{Status} & \textbf{Type} & \textbf{Description / Default Value} \\ \hline
+        \texttt{serialPort} & Optional & Integer & The hardware serial port to use on the ESP32 (0, 1, or 2). \textbf{Default: 2}. \\ \hline
+        \texttt{rxPin} & Optional & Integer & The GPIO pin number for receiving data (RX). \textbf{Default: 16}. \\ \hline
+        \texttt{txPin} & Optional & Integer & The GPIO pin number for transmitting data (TX). \textbf{Default: 17}. \\ \hline
+        \texttt{baudRate} & Optional & Integer & The data transmission rate in bits per second. \textbf{Default: 115200}. \\ \hline
+        \texttt{uartMessage} & Optional & String & The message string that triggers the event. \textbf{Default: "trigger\_<eventName>"}. \\ \hline
+    \end{tabular}
+\end{table}
+
+\paragraph{TCP/MQTT Protocol.} For network communication via TCP/MQTT, the API requires a topic to be specified. Other parameters related to network and broker configuration are optional, with predefined default values that facilitate rapid prototyping and testing. These are listed in Table \ref{tab:tcp_params}.
+
+\begin{table}[h!]
+    \centering
+    \caption{API Parameters for the TCP/MQTT Protocol}
+    \label{tab:tcp_params}
+    \begin{tabular}{|l|c|l|p{6cm}|}
+        \hline
+        \textbf{Parameter} & \textbf{Status} & \textbf{Type} & \textbf{Description / Default Value} \\ \hline
+        \texttt{topic} & Mandatory & String & The MQTT topic for publishing and subscribing. \\ \hline
+        \texttt{clientID} & Optional & String & The unique client identifier for the MQTT connection. \textbf{Default: "ESP32\_IOPT"}. \\ \hline
+        \texttt{broker} & Optional & String & The address of the MQTT broker. \textbf{Default: "broker.hivemq.com"}. \\ \hline
+        \texttt{port} & Optional & Integer & The network port for the MQTT broker. \textbf{Default: 1883}. \\ \hline
+        \texttt{ssid} & Optional & String & The Service Set Identifier (SSID) of the Wi-Fi network. \textbf{Default: "yourNetworkName"}. \\ \hline
+        \texttt{password} & Optional & String & The password for the Wi-Fi network. \textbf{Default: "yourNetworkPassword"}. \\ \hline
+        \texttt{tcpMessage} & Optional & String & The message payload that triggers the event. \textbf{Default: "trigger\_<eventName>"}. \\ \hline
+    \end{tabular}
+\end{table}
+
+
+
+% ===================================================================
+% Section 3.4: 
+% ===================================================================
+\section{Analysis of Generated Code}
+\label{sec:code_analysis}
+
+This section presents and analyzes the concrete C++ source code produced by the implemented API. For each of the three supported protocols, a sample API call is provided, followed by an analysis of the generated code's structure and key features. The full, verbatim source code for each example is available in the appendices for complete reference.
+
+% -------------------------------------------------------------------
+% Subsection 3.4.1: I2C Protocol
+% -------------------------------------------------------------------
+\subsection{I²C-Based Communication Channel}
+\label{subsec:i2c_analysis}
+
+The I²C protocol is well-suited for communication on a shared bus, following a master-slave paradigm. The API generates code for both master and slave controllers to facilitate this model.
+
+To generate the code for a project named `DemoProject` handling an event named `buttonPress`, the following API call is made:
+\begin{verbatim}
+?protocol=i2c&projectName=DemoProject&eventName=buttonPress&slaveAddress=9&slaveMessage=P
+\end{verbatim}
+
+The complete C++ source code generated by the API call is provided in \textbf{Appendix \ref{appendix:i2c}}.
+
+A key feature of the slave controller's implementation is the safe handling of asynchronous events. To communicate an event from the hardware-triggered Interrupt Service Routine (ISR) to the main synchronous execution loop, a \texttt{volatile} boolean flag is employed. This critical design pattern, which prevents compiler optimizations that could lead to race conditions, is illustrated in the following snippet:
+
+\begin{verbatim}
+// Snippet from Slave Controller Code (Full code in Appendix \ref{appendix:i2c})
+
+// PART 1: Defined in the global scope
+volatile bool buttonPress_trigger_flag = 0;
+
+// ...
+
+// PART 3: Polled within the synchronous DemoProject_GetInputSignals()
+if (buttonPress_trigger_flag == 1) {
+    events->buttonPress = 1;
+    buttonPress_trigger_flag = 0; // Reset the flag after processing
+}
+\end{verbatim}
+This pattern ensures that the event is processed reliably and decouples the asynchronous hardware interrupt from the synchronous Petri net execution cycle. The master controller code is more straightforward, with a dedicated function that encapsulates the I²C write operation (see Appendix \ref{appendix:i2c} for the complete listing).
+
+% -------------------------------------------------------------------
+% Subsection 3.4.2: UART Protocol
+% -------------------------------------------------------------------
+\subsection{UART-Based Communication Channel}
+\label{subsec:uart_analysis}
+UART communication is ideal for point-to-point serial data exchange and does not rely on a shared clock. The generated code supports bidirectional communication between two peer controllers.
+
+\paragraph{Sample API Call.}
+\begin{verbatim}
+?protocol=uart&projectName=SystemA&eventName=toggleLED&baudRate=9600
+\end{verbatim}
+
+The complete source code generated for this UART example can be found in \textbf{Appendix \ref{appendix:uart}}.
+
+The implementation creates a \texttt{HardwareSerial} object for communication, preserving the primary serial port for debugging [cite: 594-596]. The code is symmetric, providing functions for sending and receiving data. Reception is handled by polling the serial buffer. When a valid message is received, its content is compared against a predefined constant. A match sets a \texttt{volatile} flag to signal the event to the synchronous \texttt{SystemA\_GetInputSignals()} function, effectively decoupling the asynchronous serial input from the model execution.
+
+% -------------------------------------------------------------------
+% Subsection 3.4.3: TCP/MQTT Protocol
+% -------------------------------------------------------------------
+\subsection{TCP/MQTT-Based Communication Channel}
+\label{subsec:tcp_analysis}
+For networked systems, the tool generates code utilizing the MQTT protocol over TCP/IP. This enables a robust publish-subscribe communication model managed by a central broker.
+
+\paragraph{Sample API Call.}
+\begin{verbatim}
+?protocol=tcp&projectName=SensorNetwork&eventName=alert&topic=sensors/events
+\end{verbatim}
+
+The complete listing of the generated code for this TCP/MQTT example is available in \textbf{Appendix \ref{appendix:tcp}}.
+
+The code leverages the \texttt{PubSubClient.h} library to manage the MQTT connection [cite: 653]. The logic is centered around a \texttt{callback} function, which is triggered by the library upon receiving a message on a subscribed topic [cite: 677-678, 682]. Inside the callback, the message payload is compared to an expected event string. A match sets a \texttt{volatile} flag for the synchronous \texttt{SensorNetwork\_GetInputSignals()} function. The code also includes a \texttt{reconnect} function to automatically re-establish the connection to the broker if it is lost, enhancing the system's resilience.
+
+
+
+% ===================================================================
+% Section 3.5: 
+% ===================================================================
+\section{Tool Validation}
+\label{sec:validation}
+
+Following the implementation of the code generation tool, a two-stage validation process was conducted to verify its reliability and functional correctness of its output. The first stage focused on testing the API's behavior, while the second stage involved empirically validating the generated C++ code on target hardware.
+
+% -------------------------------------------------------------------
+% Subsection 3.5.1: API Functionality Testing
+% -------------------------------------------------------------------
+\subsection{API Functionality Testing}
+\label{subsec:api_testing}
+
+The API endpoint was systematically tested to ensure its robustness and adherence to the specification described in Section 3.3. The testing methodology involved subjecting the API to a series of HTTP GET requests with valid and invalid parameter sets.
+
+The API was tested with a range of valid parameter combinations for the three supported protocols (I²C, UART, and TCP/MQTT). These tests confirmed that the tool consistently produced syntactically correct C++ code that matched the expected output for the given inputs.
+
+To verify the error handling capabilities of the tool, a series of negative tests were performed. These included:
+\begin{itemize}
+    \item Submitting requests with missing mandatory parameters (for example, omitting the \texttt{topic} for the TCP protocol).
+    \item Providing values outside the specified valid range (for example, an I2C \texttt{slaveAddress} of 150).
+    \item Using an unsupported protocol name in the \texttt{protocol} parameter.
+\end{itemize}
+In all such cases, the API correctly identified the input as invalid and returned the expected \texttt{HTTP 400} status code along with a descriptive error message, as designed. This confirmed the robustness of the input validation and error handling logic.
+
+% -------------------------------------------------------------------
+% Subsection 3.5.2: Generated Code Validation
+% -------------------------------------------------------------------
+\subsection{Generated Code Validation}
+\label{subsec:code_validation}
+
+The second stage of validation focused on confirming that the code generated by the tool was not only syntactically correct, but also functionally operational. For this purpose, a physical testbed consisting of two ESP32 micro-controller development boards was established for this purpose.
+
+For each of the three protocols, the following procedure was executed:
+\begin{enumerate}
+    \item A sample API call was made to generate the code for both the sending (Master/Publisher) and receiving (Slave/Subscriber) controllers.
+    \item The respective generated C++ code was integrated into a minimal Arduino project, compiled, and uploaded to the two ESP32 boards.
+    \item The boards were connected according to the requirements of the protocol being tested (for example, via I2C bus lines, cross-wired UART pins, or connected to the same Wi-Fi network for MQTT).
+    \item The sending device was triggered to activate the Petri net output event, and the receiving device's serial monitor was observed for confirmation of message reception.
+\end{enumerate}
+
+The empirical tests were successful for all three communication protocols. In each test case, the receiving device correctly registered the event triggered by the sending device. This validation process confirmed that the API generates functionally correct, reliable, and deployable communication modules that successfully implement the behavior specified in the IOPT model.
+
+
+
+
+% -------------------------------------------------------------------
+% Subsection 3. PARA apagar?
+% -------------------------------------------------------------------
 
 \section{Mapping Model Constructs to Implementation Primitives}
 \label{sec:mapping_constructs}
@@ -57,259 +301,10 @@ Before presenting a specific code example, it is important to briefly discuss th
 \begin{itemize}
     \item \textbf{Synchronicity Model:} The primary consideration is whether the communication is between locally synchronous modules or across globally asynchronous domains. Protocols like \gls{spi} and \gls{i2c} are well-suited for communication within a single, shared clock domain, whereas \gls{uart} or \gls{fifo}-based logic are ideal for inter-domain \gls{gals} communication.
     \item \textbf{Network Topology:} The physical arrangement of the controllers influences the choice. A point-to-point link might favor \gls{uart}, while a multi-drop bus connecting one master to several slaves makes \gls{i2c} or \gls{spi} (with multiple chip selects) a more logical choice.
-    \item \textbf{Performance Characteristics:} The decision also involves trade-offs between latency, throughput, and reliability. For time-sensitive applications, a low-latency protocol like \gls{spi} might be preferred, whereas for non-critical status updates, the simplicity of \gls{uart} could be sufficient.
+    \item \textbf{Performance Characteristics:} The decision also involves trade-offs between latency, throughput, and reliability. For time-sensitive applications, a low-latency protocol like \gls{spi} might be preferred, whereas for non-critical status updates, the simplicity of \gls{uart} could be sufficient. 
 \end{itemize}
 
-\section{Implementation Case Study: An \gls{i2c}-Based Channel}
-\label{sec:case_study_i2c}
+See Appendix~\ref{appendix:i2c} for the I²C code.
+See Appendix~\ref{appendix:uart} for the UART code.
 
-To demonstrate the tool's practical output, this section presents a case study focused on a common scenario in distributed control: triggering a remote event from one microcontroller to another.
-
-For this example, a multi-slave bus architecture was assumed, making the \gls{i2c} protocol an appropriate choice due to its built-in addressing scheme and low hardware pin count. The following subsection will detail the generated \gls{c} code for the slave device, illustrating how the asynchronous reception of an \gls{i2c} command is safely integrated into the synchronous execution loop of the IOPT controller.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{\gls{i2c} Communication Implementation}
-\label{sec:i2c_implementation}
-
-\subsection{\gls{i2c} Communication Setup}
-The implementation of the communication channel relies on the standard \texttt{Wire} library, which offers a high-level interface for configuring and operating the \gls{i2c} bus on embedded controllers. This library supports both master and slave roles, synchronous data transmission, and interrupt-driven message reception, thus ensuring reliable communication across distributed components.
-
-The \gls{i2c} bus requires two signal lines, \gls{sda} and \gls{scl}, together with a common ground connection. In the code generated by the tool, these signals correspond to \gls{gpio}~21 and \gls{gpio}~22, respectively. Although these assignments follow the default mapping of the \texttt{Wire} library, they are not explicitly defined in the generated code. To guarantee stable signal levels, both lines need to be equipped with pull-up resistors, as prescribed by the \gls{i2c} protocol specification. During initialization, the master device invokes \texttt{Wire.begin()} without an address parameter, while each slave device calls \texttt{Wire.begin()} with its assigned address, allowing message reception.
-
-In addition to the library configuration, certain \gls{i2c} parameters are automatically introduced by the code generation tools and embedded in the program as preprocessor directives. An example is shown below:
-\begin{verbatim}
-#define I2C_SLAVE_ADDRESS      0x09   // Address assigned to this device
-#define CMD_TRIGGER_EVENT9     0xA2   // Command linked to Petri net event
-\end{verbatim}
-These constants ensure that device addressing and event-triggering commands remain consistent with the model-level specification from which the code is derived, while also simplifying the integration of communication logic into the final implementation.
-
-\subsection{Message Transmission (Master Side)}
-Whenever a Petri net output event must be communicated to a slave device, the master initiates a write operation on the bus. To support communication with multiple slave devices, the message transmission logic is generalized into the following function:
-
-\begin{verbatim}
-// Generalized I²C write operation
-void triggerMasterSendSlaveEvent(byte slaveAddress, byte command) {
-    Serial.println("Attempting to send command to slave...");
-
-    // Step 1: Begin a transmission to the I²C slave device
-    Wire.beginTransmission(slaveAddress);
-
-    // Step 2: Send the command byte
-    Wire.write(command);
-
-    // Step 3: Stop the transmission and send the data
-    byte error = Wire.endTransmission();
-
-    // Check the status of the transmission
-    if (error == 0) {
-        Serial.println("Command sent successfully!");
-    } else {
-        Serial.print("Error sending command. Error code: ");
-        Serial.println(error);
-        Serial.println("Check connections and slave address.");
-    }
-}
-\end{verbatim}
-
-\noindent
-This function introduces two parameters:
-\begin{itemize}
-    \item \texttt{slaveAddress} (\texttt{byte}): The 7-bit \gls{i2c} address of the destination slave device. This argument allows the master to dynamically target different devices connected to the bus, in accordance with the constants generated by the tool (e.g., \texttt{I2C\_SLAVE\_ADDRESS}).
-    \item \texttt{command} (\texttt{byte}): The encoded instruction to be transmitted, typically representing an event identifier derived from the Petri net model (e.g., \texttt{CMD\_TRIGGER\_EVENT9}).
-\end{itemize}
-
-The function reports the transmission status via the return code of \texttt{Wire.endTransmission()}. A result of \texttt{0} indicates successful delivery, while non-zero values reflect communication errors (e.g., device not acknowledging the address or line disconnection). This feedback, logged through the serial interface, facilitates runtime debugging of bus integrity and device configuration.
-
-\subsection{Message Reception (Slave Side)}
-The slave controller employs an \gls{isr} (\gls{isr}) to process incoming messages. Upon receiving data, the \gls{isr} sets an internal flag to synchronize message handling with the Petri net execution cycle:
-\begin{verbatim}
-// Flag for signaling Petri net input
-static volatile int event_trigger_flag = 0;
-
-void receiveI2CEvent(int byteCount) {
-    if (Wire.available() > 0) {
-        char command = Wire.read();
-        if (command == CMD_TRIGGER_EVENT) {
-            event_trigger_flag = 1;  // Mark event for Petri net
-        }
-    }
-    // ... clear buffer if required
-}
-\end{verbatim}
-In the main execution loop, this flag is polled and mapped to the Petri net input structure:
-\begin{verbatim}
-if (events != NULL) {
-    if (event_trigger_flag == 1) {
-        events->event = 1;         // Inject event into Petri net
-        event_trigger_flag = 0;    // Reset flag after processing
-    } else {
-        events->event = 0;
-    }
-}
-\end{verbatim}
-This design decouples the asynchronous arrival of \gls{i2c} messages from the synchronous execution of the Petri net, ensuring deterministic and reliable event handling.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{\gls{uart} Communication Implementation}
-\label{sec:uart_implementation}
-
-
-\subsection{\gls{uart} Communication Setup}
-\gls{uart} communication is implemented using the \texttt{HardwareSerial} class provided by the ESP32 framework. This library enables full-duplex serial communication over dedicated \gls{rx} and \gls{tx} pins and supports multiple \gls{uart} interfaces on the controller. In the generated code, a secondary hardware serial interface (\texttt{MySerial}) is employed, configured with a baud rate of 115200 and standard serial framing (\texttt{SERIAL\_8N1}).
-
-The necessary input parameters, including pin assignments and \gls{uart} message identifiers, are defined by the user and processed by the code generation tool. These parameters are automatically converted into preprocessor directives and constant values, ensuring a direct correspondence between the model-level specification and the executable program. For instance, the pin configuration is expressed as:
-\begin{verbatim}
-#define RXD2 16   // UART \gls{rx} pin
-#define TXD2 17   // UART \gls{tx} pin
-\end{verbatim}
-
-Similarly, the message identifiers associated with Petri net events are introduced as constant string definitions:
-\begin{verbatim}
-const String MESSAGE_UART_EVENT43 = "TRIGGER_EVENT43";
-const String MESSAGE_UART_EVENT52 = "TRIGGER_EVENT52";
-\end{verbatim}
-This mechanism ensures consistency between the logical communication events defined at the model level and their implementation in the generated code, while maintaining clarity and reducing the risk of mismatches.
-
-Finally, the initialization routine establishes both the debugging channel (\texttt{Serial}) and the application channel (\texttt{MySerial}), as illustrated below:
-\begin{verbatim}
-void setupUart() {
-    Serial.begin(115200);
-    MySerial.begin(115200, SERIAL_8N1, RXD2, TXD2);
-    Serial.println("UART communication initialized.");
-}
-\end{verbatim}
-This procedure guarantees that the \gls{uart} communication infrastructure is fully operational at runtime, thereby enabling reliable message exchange between the components of the distributed system.
-
-
-
-\subsection{Bidirectional Communication}
-Unlike the \gls{i2c} bus, \gls{uart} does not distinguish between master and slave roles. Instead, both controllers can transmit and receive messages independently over their \gls{tx}/\gls{rx} lines. The generated code therefore provides symmetric functions for sending and receiving messages.
-
-\paragraph{Sending Messages.}  
-Transmission of events is achieved through the following function:
-\begin{verbatim}
-void sendDataUart(String message) {
-    MySerial.println(message);
-    Serial.print("Message sent: ");
-    Serial.println(message);
-}
-\end{verbatim}
-This function allows Petri net output events to be directly mapped into \gls{uart} message transmissions.
-
-\paragraph{Receiving Messages.}  
-Reception is handled by continuously monitoring the \gls{uart} buffer. When a valid message string is detected, it is matched against the generated identifiers and mapped to a Petri net event:
-\begin{verbatim}
-String receiveDataUart() {
-    if (MySerial.available()) {
-        String data = MySerial.readStringUntil('\n');
-        data.trim();
-        return data;
-    }
-    return "";
-}
-
-void waitMessageUart() {
-    String receivedMessage = receiveDataUart();
-    if (receivedMessage.length() > 0 && 
-        receivedMessage == MESSAGE_UART_EVENT52) {
-        event52_trigger_flag = true;
-        Serial.println("Correct message received. Flag 52 activated.");
-    }
-}
-\end{verbatim}
-
-\noindent
-The reception logic sets an internal flag (\texttt{event52\_trigger\_flag}), which can then be polled and mapped into the Petri net input structure. This design decouples asynchronous \gls{uart} message arrivals from the synchronous execution cycle of the Petri net.
-
-\subsection{Integration with Petri Net Execution}
-Finally, the \gls{uart} initialization is automatically embedded into the generated I/O configuration routine:
-\begin{verbatim}
-setupUart();  // Initialize UART communication
-\end{verbatim}
-This ensures that both pin assignments and message identifiers, provided as inputs to the generation tool, are consistently integrated into the system before the execution of Petri net cycles. The resulting design enables fully bidirectional communication between controllers, where either side can trigger or respond to Petri net events.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{\gls{tcp} Communication with \gls{mqtt}}
-\label{sec:tcp_mqtt_implementation}
-
-\subsection{\gls{tcp}/\gls{ip} Communication Setup}
-\gls{tcp}/\gls{ip} communication is implemented using the Wi-Fi and \gls{mqtt} protocols using the \texttt{WiFi.h} and \texttt{PubSubClient.h} libraries. The Wi-Fi library provides network connectivity over \gls{ieee}~802.11, while the \gls{mqtt} client library manages lightweight publish/subscribe communication on top of \gls{tcp}. This architecture enables distributed controllers to exchange Petri net events within a broker-based infrastructure.
-
-All network and protocol parameters are defined by the user and processed by the code generation tool, which embeds them directly into the generated code. These parameters include Wi-Fi credentials (\gls{ssid} and password), \gls{mqtt} broker settings (hostname or \gls{ip} address and port) and a unique client identifier for each device, for example:
-\begin{verbatim}
-const char* client_id_TD_2 = "ESP32_IOPT_TD_2";
-\end{verbatim}
-The communication channels are defined as \gls{mqtt} topics which specify the subscriptions and publications required for event exchange, such as:
-\begin{verbatim}
-const char* topic_sub = "device/events/commands"; // Topic to subscribe
-const char* topic_pub = "device/events/commands"; // Topic to publish
-\end{verbatim}
-Finally, the messages corresponding to Petri net events are expressed as string constants, ensuring direct traceability between the model specification and the runtime communication, for example:
-\begin{verbatim}
-const char* message_event40 = "Action_Triggered_By_Event_40";
-const char* message_event46 = "Action_Triggered_By_Event_46";
-\end{verbatim}
-
-The initialization routine establishes the network connection and configures the \gls{mqtt} client. First, the device connects to the Wi-Fi network using the provided credentials, after which the \gls{mqtt} client is initialized with the broker settings. The corresponding procedure is shown below:
-\begin{verbatim}
-void tcpMqttInitializeIO() {
-    Serial.begin(115200);
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("Wi-Fi connected!");
-
-    client.setServer(mqtt_broker, mqtt_port);
-    client.setCallback(callback);
-}
-\end{verbatim}
-The \texttt{callback} function is registered to process incoming \gls{mqtt} messages and translate them into Petri net events, thereby enabling event-driven communication between distributed components.
-
-
-
-\subsection{Receiving Messages}
-Whenever a subscribed message arrives, the callback function is triggered. The payload is compared with the generated event message strings, and the corresponding flags are updated:
-\begin{verbatim}
-void callback(char* topic, byte* payload, unsigned int length) {
-    String message;
-    for (int i = 0; i < length; i++) {
-        message += (char)payload[i];
-    }
-    if (String(topic) == topic_sub) {
-        if (message.equals(message_event40)) {
-            event40_trigger_flag = true;
-        } else if (message.equals(message_event46)) {
-            event46_trigger_flag = true;
-        }
-    }
-}
-\end{verbatim}
-The internal flags (\texttt{event40\_trigger\_flag}, \texttt{event46\_trigger\_flag}) decouple the asynchronous arrival of \gls{mqtt} messages from the synchronous execution cycle of the Petri net.
-
-\subsection{Maintaining the Connection}
-The \gls{mqtt} client requires periodic polling to ensure connectivity and process incoming messages:
-\begin{verbatim}
-void loopDelayTcp(const char* topic) {
-    if (!client.connected()) {
-        reconnect(topic);
-    }
-    client.loop(); // Keeps MQTT connection alive and processes new messages
-}
-\end{verbatim}
-The \texttt{reconnect()} function handles reconnections in case of broker or Wi-Fi failures, ensuring robust communication.
-
-\subsection{Publishing Messages}
-Petri net output events are mapped to \gls{mqtt} publish operations by transmitting the corresponding predefined message strings to the broker topic defined by the user as input:
-\begin{verbatim}
-client.publish(topic_pub, message_event40);
-\end{verbatim}
-This approach allows the generated code to remain fully generic: the publish topic can be configured per device through the code generation tool. One controller can broadcast event activations, while other controllers subscribed to the corresponding topic receive them and map them into their own Petri net execution cycle.
-
-\subsection{Communication Model}
-In contrast to \gls{i2c} (master/slave) and \gls{uart} (peer-to-peer), \gls{mqtt} follows a broker-based publish/subscribe model. Each controller can both publish and subscribe to topics, enabling fully distributed event communication. The use of predefined message identifiers ensures deterministic mapping between Petri net events and \gls{tcp}/\gls{mqtt} messages in the generated code.
+asaaasdaasassasas

@@ -1,0 +1,4 @@
+# I2C Example Code
+Initialize I2C bus
+Send data
+Receive data
