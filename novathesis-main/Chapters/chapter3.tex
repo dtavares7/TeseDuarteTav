@@ -12,13 +12,6 @@
 \label{cha:chap_3}
 
 
-%falar como emular o scenario
-%falar que ]e um bus
-%tirar uma imagem do IOPT-tools
-%fazer um desenho das liga;oes
-%tirar foto ao setup
-
-
 As discussed in Section~\ref{subsec:communication_gap}, the IOPT-Tools environment provides robust support for modeling, verifying, and generating code for individual controller sub-models specified with \gls{iopt} Petri nets \cite{iopttools, barros2004, RefiningIOPT}. However, a significant limitation arises in distributed control systems, particularly under the \gls{gals} paradigm, where decomposed sub-models require intercommunication \cite{galsactd, Barrosadd}. Current automatic code generation within IOPT-Tools focuses primarily on the internal logic of each sub-model, leaving the implementation of communication links to be carried out manually. This process is time-consuming, error-prone and poses substantial challenges for debugging and validation.  
 
 The objective of this dissertation is to address this gap by proposing an automated code generation tool capable of analyzing decomposed \gls{iopt} sub-models obtained through the decomposition of GALS systems in IOPT-Tools and automatically producing the necessary communication infrastructure code. In doing so, the tool streamlines the development of distributed control systems and ensures efficient and reliable data exchange pathways.  
@@ -30,15 +23,15 @@ This chapter presents the design, implementation, and validation of the proposed
 % Section 3.1
 % ===================================================================
 
-\section{System Architecture and Design Rationale}
-\label{sec:architecture}
+\section{Key Design Decisions}
+\label{sec:design_decisions}
 
 The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}(mudar), which resides on a web server and is responsible for processing all incoming requests.
 
 
 
 \begin{enumerate}
-    \item \textbf{User Request:} The user constructs a Hypertext Transfer Protocol (HTTP) GET request that contains a set of URL parameters. These parameters specify the desired communication protocol and its configuration, as detailed in Section 3.3(mudar).
+    \item \textbf{User Request:} The user constructs a Hypertext Transfer Protocol (HTTP) GET request that contains a set of URL parameters. These parameters specify the desired communication protocol and its configuration, as detailed in Section ~\ref{sec:api_spec}.
     \item \textbf{Server-Side Processing:} The web server receives the request and forwards it to the \texttt{gals.php}(mudar) script. The script parses and validates the input parameters, selects the appropriate code template based on the chosen protocol, and dynamically populates it with the user-provided values.
     \item \textbf{Code Generation:} The script generates the complete C++ source code tailored to the user's specifications. In the event of invalid or missing parameters, the script generates an appropriate HTTP 400 error response.
     \item \textbf{HTTP Response:} The server sends the generated code back to the user within an HTTP response, typically rendered as plain text in the browser.
@@ -54,17 +47,36 @@ The tool is implemented as a server-side web Application Programming Interface (
 \end{figure}
 
 % ===================================================================
-% Section 3.2
+% Section 3.2   -----------
 % ===================================================================
 
-\subsection{Design Rationale}
-\label{subsec:design_rationale}
+\section{Design Rationale}
+\label{sec:design_rationale}
 
 A Web API was chosen over a standalone desktop application or a command-line tool primarily for its inherent **platform independence** and **accessibility**. This approach eliminates the need for users to install any specialized software; the tool can be accessed from any device with a web browser or a standard HTTP client. This aligns with the web-based nature of the IOPT-Tools environment itself.
 
 The choice of PHP as the implementation language for the proposed tool was motivated by several considerations. First, PHP is inherently designed as a server-side scripting language, well suited for handling web requests and generating dynamic content, which constitutes the core functionality of the tool. Second, since code generation is fundamentally a text manipulation task, the extensive library of built-in string processing functions of PHP greatly facilitated the development of the code templating engine. Third, PHP remains one of the most widely deployed back-end languages, with near-universal support across web hosting providers, thereby ensuring that the tool is both easily deployable and maintainable. Finally, the decision aligns strategically with the IOPT-Tools ecosystem, which itself is structured as a comprehensive web-based development environment. The adoption of a prominent server-side technology such as PHP thus maximizes architectural compatibility and establishes a clear path toward seamless integration of the code generation tool into the main IOPT-Tools web interface.
 
 Although modern APIs often employ POST requests with JSON payloads, a simpler GET-based interface was selected for this application, as it offers several advantages particularly suited to the intended use case. First, GET requests can be constructed and tested directly in a web browser's address bar, greatly facilitating debugging, demonstration, and user adoption; this approach is explicitly supported through the tool’s dedicated help page (\texttt{help.php}). Second, since each code generation request represents an independent and self-contained transaction, the stateless nature of GET requests provides a natural fit, eliminating the need to maintain server-side session state between consecutive requests. Finally, a complete API call, including all its parameters, is encapsulated within a single URL. This feature enhances usability by allowing users to easily save, bookmark, and share specific code generation configurations.
+
+
+
+% -------------------------------------------------------------------
+% Subsection 3.3 :  ----------- Mapping Model Constructs to Implementation Primitives
+% -------------------------------------------------------------------
+
+\section{Mapping Model Constructs to Implementation Primitives}
+\label{sec:mapping_constructs}
+
+A critical function of the generation tool is to create a conceptual bridge between the abstract formalism of the decomposed \gls{iopt} Petri net model and concrete primitives of the generated C++ code. This section describes how the API systematically translated the high-level constructs of the GALS-extended \gls{iopt} models into tangible programming constructs.
+
+An important mapping concerns event-triggered transitions, which correspond to protocol-specific message transmissions. In the decomposed model, a transition that sends an event to another sub-model is implemented as a conditional block within the sender's \texttt{PutOutputSignals()} or \texttt{OutputSignals()} function. The activation of this transition, represented in code as \texttt{if (events->eventName == 1)}, is directly associated with a function call that transmits a message using the chosen protocol primitive. Examples include \texttt{Wire.write()} for I²C, \texttt{MySerial.println()} for UART, and \texttt{client.publish()} for MQTT.
+
+Another essential mapping involves the Asynchronous Channel (AC), which in the abstract model facilitates communication across different clock domains in a GALS system. In software, this construct is realized through a two-part mechanism. First, an asynchronous reception primitive is used and its form depends on the chosen protocol: an Interrupt Service Routine (\texttt{onReceive}) for I²C, polling of the serial buffer (\texttt{MySerial.available()}) for UART, or a client callback function for MQTT. Second, upon receiving the correct message, this mechanism sets a \texttt{volatile} boolean flag. The flag functions as a safe, memory-mapped bridge between the asynchronous communication domain (where the message arrives) and the synchronous Petri net execution domain, where it is polled within the \texttt{GetInputSignals()} function.
+
+Finally, the transfer of tokens between sub-models is directly mapped to the exchange of message payloads. Concretely, the data or state represented by a token is encoded in the \texttt{slaveMessage}, \texttt{uartMessage}, or \texttt{tcpMessage} parameter of the API. The successful reception of this specific payload by the destination controller effectively completes the token transfer and enables the progression of the corresponding Petri net.
+
+Through these mappings, the tool establishes a systematic and consistent correspondence between abstract model constructs and concrete implementation primitives, thereby ensuring that the semantics of GALS extended \gls{iopt} models are faithfully preserved in the generated code.
 
 
 % ===================================================================
@@ -276,35 +288,3 @@ For each of the three protocols, the following procedure was executed:
 The empirical tests were successful for all three communication protocols. In each test case, the receiving device correctly registered the event triggered by the sending device. This validation process confirmed that the API generates functionally correct, reliable, and deployable communication modules that successfully implement the behavior specified in the IOPT model.
 
 
-
-
-% -------------------------------------------------------------------
-% Subsection 3. PARA apagar?
-% -------------------------------------------------------------------
-
-\section{Mapping Model Constructs to Implementation Primitives}
-\label{sec:mapping_constructs}
-
-A critical function of the generation tool is to create a conceptual bridge between the abstract formalism of the \gls{iopt} Petri net model and the concrete primitives of a programming language. This section describes how high-level constructs from the GALS-extended \gls{iopt} models are systematically translated into tangible programming constructs.
-
-\begin{itemize}
-    \item A \textbf{synchronized transition} in the model, which represents a lock-step interaction, typically maps to a master-slave command pattern. For instance, the master component sends a specific command byte, and the slave component's logic waits to receive that exact byte before proceeding.
-    \item An \textbf{\gls{ac} (\gls{ac})}, designed for communication across clock domains, naturally maps to a hardware-agnostic \gls{fifo} buffer coupled with a handshake protocol. This is often implemented with \texttt{valid/ready} signals to ensure data integrity without a shared clock.
-    \item Data associated with a \textbf{token} residing in a shared place, representing a shared resource or data item, maps directly to the payload of a communication packet. The transfer of the token from one sub-model to another is realized by transmitting this payload.
-\end{itemize}
-
-\section{Protocol Selection and Rationale}
-\label{sec:protocol_rationale}
-
-Before presenting a specific code example, it is important to briefly discuss the criteria governing the selection of an appropriate communication protocol. The automated tool is designed to either make an intelligent default selection or to guide the user in choosing a protocol based on the application's requirements. The selection is informed by the factors analyzed in the state of the art (Section 2.4):
-
-\begin{itemize}
-    \item \textbf{Synchronicity Model:} The primary consideration is whether the communication is between locally synchronous modules or across globally asynchronous domains. Protocols like \gls{spi} and \gls{i2c} are well-suited for communication within a single, shared clock domain, whereas \gls{uart} or \gls{fifo}-based logic are ideal for inter-domain \gls{gals} communication.
-    \item \textbf{Network Topology:} The physical arrangement of the controllers influences the choice. A point-to-point link might favor \gls{uart}, while a multi-drop bus connecting one master to several slaves makes \gls{i2c} or \gls{spi} (with multiple chip selects) a more logical choice.
-    \item \textbf{Performance Characteristics:} The decision also involves trade-offs between latency, throughput, and reliability. For time-sensitive applications, a low-latency protocol like \gls{spi} might be preferred, whereas for non-critical status updates, the simplicity of \gls{uart} could be sufficient. 
-\end{itemize}
-
-See Appendix~\ref{appendix:i2c} for the I²C code.
-See Appendix~\ref{appendix:uart} for the UART code.
-
-asaaasdaasassasas
