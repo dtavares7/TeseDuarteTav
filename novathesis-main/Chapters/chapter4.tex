@@ -20,6 +20,8 @@
 
 \section{Introduction}
 \label{sec:case_study_intro}
+isto pa \cite{tavaresgomes2026}
+
 
 Having detailed the design and implementation of the automated code generation tool in Chapter \ref{cha:chap_3}, this chapter now seeks to validate its practical utility and analyze its output in a real-world scenario. Although the previous chapter verified the tool's functionality, this chapter demonstrates its application within the intended model-driven development workflow, from a high-level system specification to a deployed multi-controller system [cite: 1, 2, 3].
 
@@ -82,7 +84,7 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 
 \begin{figure*}[htb]
     \centering
-    \includegraphics[width=0.75\textwidth]{Chapters/Figures/prototypelayout.png}
+    \includegraphics[width=1\textwidth]{Chapters/Figures/prototypelayout.png}
     \caption{The heterogeneous deployment architecture for the distributed conveyor system controller, utilizing I²C, UART, and MQTT over TCP/IP for inter-controller communication and synchronization.}
     \label{fig:deployment_layout}
 \end{figure*}
@@ -91,21 +93,29 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 As depicted in the deployment architecture, \textit{Controller Two} acts as the master on a local I²C bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, an API call similar to the following was used:
 
 \begin{verbatim}
-?protocol=i2c&projectName=ControllerTwo&eventName=TransferReady&slaveAddress=8&slaveMessage=R
+?protocol=i2c&projectName=ControllerTwo&eventName=TransferReady&
+slaveAddress=8&slaveMessage=R
 \end{verbatim}
+
+% Inside Section 4.3.1
+
+A validation of this bus's dynamic behavior, showing the sequence of events between the master and slaves, is presented and analyzed in detail in Section 4.4.4(mudar) via a simulator-captured timing diagram.
+
 
 \subsection{UART Point-to-Point Link}
 A direct, asynchronous serial link between \textit{Controller Three} and \textit{Controller Exit} was required to signal the final transfer of a piece. The code for this UART-based communication was generated with the following API call:
 
 \begin{verbatim}
-?protocol=uart&projectName=ControllerThree&eventName=PieceExiting&baudRate=115200
+?protocol=uart&projectName=ControllerThree&eventName=PieceExiting&
+baudRate=115200
 \end{verbatim}
 
 \subsection{MQTT Network Communication}
 To handle higher-level, asynchronous status updates between the main controllers, the MQTT protocol was employed over a Wi-Fi network. For example, to allow \textit{Controller Entrance} to publish a "Part Arrived" event to a central topic that \textit{Controller Two} subscribes to, the following API call was made:
 
 \begin{verbatim}
-?protocol=tcp&projectName=ControllerEntrance&eventName=PartArrived&topic=conveyor/status
+?protocol=tcp&projectName=ControllerEntrance&eventName=PartArrived&
+topic=conveyor/status
 \end{verbatim}
 
 \subsection{Code Integration}
