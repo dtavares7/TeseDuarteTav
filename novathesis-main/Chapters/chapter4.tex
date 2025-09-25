@@ -49,7 +49,7 @@ As illustrated in Figure \ref{fig:conveyor_layout}, the physical system consists
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.6\columnwidth]{Chapters/Figures/layout.png}
-    \caption{Layout of the three-conveyor system, showing the placement of sensors and the direction of item flow.}
+    \caption{Layout of the three-conveyor system, showing the placement of sensors and the direction of item flow, adapted from \cite{tavaresgomes2026}.}
     \label{fig:conveyor_layout}
 \end{figure}
 
@@ -58,7 +58,7 @@ The complete centralized behavior of the controller is formally specified using 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.95\columnwidth]{Chapters/Figures/modeloglobalcomcuttingset.png}
-    \caption{The global IOPT Petri net model specifying the centralized controller for the entire conveyor system. The nodes highlighted in red represent the chosen cutting set for decomposition.}
+    \caption{The global IOPT Petri net model specifying the centralized controller for the entire conveyor system. The nodes highlighted in red represent the chosen cutting set for decomposition, adapted from \cite{tavaresgomes2026}.}
     \label{fig:global_model}
 \end{figure}
 
@@ -67,7 +67,7 @@ For deployment onto a set of distributed hardware controllers, the global model 
 \begin{figure*}[htb]
     \centering
     \includegraphics[width=0.9\textwidth]{Chapters/Figures/controller_decomposition.png}
-    \caption{The transformation from the centralized controller model (left) to a set of concurrent, networked sub-models (right) resulting from the net splitting operation.}
+\caption{The transformation from the centralized controller model (left) to a set of concurrent, networked sub-models (right) resulting from the net splitting operation, adapted from \cite{tavaresgomes2026}.}
     \label{fig:decomposed_model}
 \end{figure*}
 
@@ -85,44 +85,124 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 \begin{figure*}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Chapters/Figures/prototypelayout.png}
-    \caption{The heterogeneous deployment architecture for the distributed conveyor system controller, utilizing I²C, UART, and MQTT over TCP/IP for inter-controller communication and synchronization.}
+\caption{The heterogeneous deployment architecture for the distributed conveyor system controller, utilizing I²C, UART, and MQTT over TCP/IP for inter-controller communication and synchronization, adapted from \cite{tavaresgomes2026}.}
     \label{fig:deployment_layout}
 \end{figure*}
 
+
+% ===================================================================
+% Revised Subsection 4.3.1 with Integrated Validation
+% ===================================================================
 \subsection{I²C Bus Implementation}
-As depicted in the deployment architecture, \textit{Controller Two} acts as the master on a local I²C bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, an API call similar to the following was used:
+As depicted in the deployment architecture (Figure \ref{fig:deployment_layout}), \textit{Controller Two} acts as the master on a local I²C bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, two API calls similar to the following were used:
 
 \begin{verbatim}
-?protocol=i2c&projectName=ControllerTwo&eventName=TransferReady&
-slaveAddress=8&slaveMessage=R
+?protocol=i2c&projectName=ControllerTwo&eventName=event37_td_1
+&slaveAddress=8&slaveMessage=A
 \end{verbatim}
 
-% Inside Section 4.3.1
+And for the second event:
+\begin{verbatim}
+?protocol=i2c&projectName=ControllerTwo&eventName=event49_td_3
+&slaveAddress=9&slaveMessage=B
+\end{verbatim}
 
-A validation of this bus's dynamic behavior, showing the sequence of events between the master and slaves, is presented and analyzed in detail in Section 4.4.4(mudar) via a simulator-captured timing diagram.
+To validate the functional behavior of the generated I²C module, the execution of \textit{Controller Two} was captured using the IOPT-Tools simulator. The resulting timing diagram, presented in Figure \ref{fig:timing_diagram_controller2}, provides a detailed view of the controller's operational logic and illustrates the direct correlation between the external I²C communication events and the internal state of the Petri net.  
+
+The behavior can be analyzed by observing the two primary I²C messages:
+\begin{itemize}
+    \item \textbf{Event \texttt{event37\_td\_1}:} The sequence shows an internal state change, where the marking of a place (e.g., \texttt{p\_11/ppb}) enables the firing of a transition (e.g., \texttt{t\_27/t11}). The diagram confirms that the firing of this transition directly causes the generation of the output signal \texttt{event37\_td\_1}. This corresponds to \textit{Controller Two}, acting as the I²C master, sending a command to one of its slaves (such as \textit{Controller Entrance}).
+
+    \item \textbf{Event \texttt{event49\_td\_3}:} Later in the execution cycle, after the physical process has evolved (indicated by changes in signals like \texttt{outi\_2}), the Petri net reaches a new state. This leads to another transition firing, which in turn causes the generation of the second I²C message, \texttt{event49\_td\_3}. This represents \textit{Controller Two} sending a subsequent command to another slave (such as \textit{Controller Three}).
+\end{itemize}
+
+This analysis confirms that the API-generated I²C communication module functions correctly and that the deployed hardware implementation faithfully reproduces the semantics of the original IOPT model.
 
 
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\columnwidth]{Chapters/Figures/timing_diagram_controller2.png}
+    \caption{Timing diagram for \textit{Controller Two}, showing how internal Petri net states (p\_...) and transition firings (t\_...) lead to the generation of I²C output events (\texttt{event37\_td\_1}, \texttt{event49\_td\_3}).}
+    \label{fig:timing_diagram_controller2}
+\end{figure}
+
+
+This complete validation of the I²C module demonstrates the tool's ability to correctly implement the master-slave bus communication as specified by the IOPT model.
+
+
+
+% ===================================================================
+% UART
+% ===================================================================
 \subsection{UART Point-to-Point Link}
-A direct, asynchronous serial link between \textit{Controller Three} and \textit{Controller Exit} was required to signal the final transfer of a piece. The code for this UART-based communication was generated with the following API call:
+\label{subsec:uart_implementation}
+
+A direct asynchronous serial link between \textit{Controller Three} and \textit{Controller Exit} was required to signal the final transfer of a piece. The code for this UART-based communication was generated with the following API call:
 
 \begin{verbatim}
-?protocol=uart&projectName=ControllerThree&eventName=PieceExiting&
-baudRate=115200
+?protocol=uart&projectName=ControllerExit
+&eventName=event43_td_3&baudRate=115200
 \end{verbatim}
 
-\subsection{MQTT Network Communication}
-To handle higher-level, asynchronous status updates between the main controllers, the MQTT protocol was employed over a Wi-Fi network. For example, to allow \textit{Controller Entrance} to publish a "Part Arrived" event to a central topic that \textit{Controller Two} subscribes to, the following API call was made:
+To validate the sending side of the UART link, the behavior of \textit{Controller Three} was analyzed using a timing diagram captured by the IOPT-Tools simulator. The diagram, shown in Figure \ref{fig:timing_diagram_controller_three}, details the internal Petri net logic that leads to the transmission of the UART message.
+
+The analysis of the diagram is as follows.
+\begin{itemize}
+    \item The operational sequence begins with the firing of an internal transition, \textbf{\texttt{t\_29/t1\_31}}, which corresponds to the arrival of the event \texttt{event53\_td\_4}, and then advances the Petri net to a state where it awaits a physical input.
+    
+    \item The controller remains in this state until the physical sensor input \textbf{\texttt{inii\_3}} is asserted. This external event enables the final transitions in the sequence (\texttt{t\_5\_12/ta\_3} and \texttt{t\_5\_13/tb\_3}).
+    
+    \item Critically, the firing of these final transitions culminates in the generation of the output signal \textbf{\texttt{event43\_td\_3}}. This represents the moment \textit{Controller Three} transmits the message payload over the UART link to \textit{Controller Exit}.
+\end{itemize}
+
+This analysis confirms that the API-generated UART sender code functions as specified. It demonstrates that the controller's internal logic, driven by both its Petri net state and physical inputs, correctly results in the transmission of the serial message at the appropriate time in the operational cycle.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\columnwidth]{Chapters/Figures/timing_diagram_controller_three.png}
+    \caption{Timing diagram for \textit{Controller Exit}, showing how internal state changes and a physical input (\texttt{inii\_3}) lead to the transmission of a UART message (\texttt{event43\_td\_3}).}
+    \label{fig:timing_diagram_controller_three}
+\end{figure}
+
+% ===================================================================
+% MQTT
+% ===================================================================
+\subsection{TCP/MQTT-Based Communication Channel}
+\label{subsec:tcp_implementation}
+
+To handle asynchronous, higher-level status updates between the main controllers, the MQTT protocol was used over a Wi-Fi network. For example, to allow a controller to publish a "Part Arrived" event to a central topic, the following API call was made:
 
 \begin{verbatim}
-?protocol=tcp&projectName=ControllerEntrance&eventName=PartArrived&
-topic=conveyor/status
+?protocol=tcp&projectName=ControllerTwo
+&eventName=PartArrived&topic=conveyor/status
 \end{verbatim}
+
+To validate network-level publisher functionality, the behavior of one of the MQTT-enabled controllers (Controller Three) was analyzed using the IOPT-Tools simulator. The timing diagram, shown in Figure \ref{fig:timing_diagram_tcp}, details how the controller's internal logic, initiated by a generic input event, culminates in the transmission of a message to the MQTT broker.
+
+The analysis of the diagram is as follows.
+\begin{itemize}
+    \item \textbf{Cycle Trigger:} The operational sequence is initiated by the arrival of an external event from another controller. The reception of this event is represented by the firing of the initial transition, \textbf{\texttt{t\_28/t1\_21}}. This trigger advances the Petri net's state and prepares the controller for its main task.
+
+    \item \textbf{Message Transmission (Publish):} After a sequence of internal state changes that are also dependent on physical inputs (like \textbf{\texttt{inii\_2}}), the Petri net's logic enables the final transition, \textbf{\texttt{t\_4\_13/tb\_2}}. The diagram confirms that the firing of this transition correctly causes the generation of the output signal \textbf{\texttt{event40\_td\_2}}, which represents the controller publishing its message to the specified MQTT topic.
+\end{itemize}
+
+This analysis validates that the API-generated TCP/MQTT module's publisher functionality is correctly integrated with the Petri net logic, sending network messages to the broker at the appropriate time based on the controller's state and inputs.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\columnwidth]{Chapters/Figures/timing_diagram_tcp.png}
+    \caption{Timing diagram validating the MQTT publisher. An external input event triggers a Petri net sequence that results in the transmission of an MQTT message (\texttt{event40\_td\_2}).}
+    \label{fig:timing_diagram_tcp}
+\end{figure}
+
+The successful validation of all three communication modules confirms the tool's ability to reliably implement a complex, heterogeneous communication architecture as specified by the IOPT model.
+
+% ===================================================================
+% Section Code Integration
+% ===================================================================
 
 \subsection{Code Integration}
-For each controller, the specific communication modules generated by the API calls were integrated with the logic code of the baseline controller produced by the standard IOPT-Tools generator. The entire process of specifying, generating, and integrating the code for all three heterogeneous communication links was completed in a fraction of the time required for manual implementation. This successfully demonstrates the tool's primary objective: to accelerate the development of distributed control systems and reduce the potential for implementation errors by automating the creation of communication infrastructure.
-
-
-
+For each controller, the baseline logic code was first generated using the standard IOPT-Tools generator, creating a \texttt{net\_io.c} file[cite: 425]. Subsequently, the specific communication modules produced by the API calls were inserted directly into this \texttt{net\_io.c} file, completing the hardware-specific implementation. The entire process of specifying, generating, and integrating the code for all three heterogeneous communication links was completed in a fraction of the time required for manual implementation. This successfully demonstrates the tool's primary objective: to accelerate the development of distributed control systems and reduce the potential for implementation errors by automating the creation of communication infrastructure.
 % ===================================================================
 % Section 4.4: Performance Analysis and Results
 % ===================================================================
@@ -131,6 +211,28 @@ For each controller, the specific communication modules generated by the API cal
 
 After successfully implementing the distributed controller for the conveyor system, a performance analysis was performed to quantify the resource overhead associated with the different communication protocols generated by the tool. Although multiple performance metrics such as latency and CPU usage could be considered, this analysis focuses on the **memory footprint**, as it is often the most critical constraint in embedded systems development.
 
+% ===================================================================
+% Nova Subsecção para o Setup Experimental no Capítulo 4
+% ===================================================================
+
+\subsection{Experimental Setup and Hardware Testbed}
+\label{subsec:hardware_setup}
+
+To empirically validate the generated code and conduct the performance analysis, a physical hardware testbed was constructed, representing the distributed controller architecture shown in Figure \ref{fig:deployment_layout}. 
+
+The testbed, photographed in Figure \ref{fig:hardware_photo}, consists of four ESP32-WROOM-32 development boards. These boards were interconnected using a combination of direct wiring and a shared bus on a breadboard to physically realize the I²C and UART communication links. The TCP/MQTT communication was facilitated by the built-in Wi-Fi capabilities of the ESP32s, which allows them to connect to a shared network. This physical prototype served as the basis for all the validation and performance measurements presented in this chapter.
+
+\begin{figure}[htb!]
+    \centering
+    % Certifique-se de que a sua foto está na pasta de figuras
+    \includegraphics[width=0.9\columnwidth]{Chapters/Figures/photo_of_setup.png}
+    \caption{The physical hardware testbed for the three-conveyor system, showing the four interconnected ESP32 controller modules.}
+    \label{fig:hardware_photo}
+\end{figure}
+
+% ===================================================================
+% Nova Subsecção Methodology
+% ===================================================================
 \subsection{Methodology}
 \label{subsec:analysis_methodology}
 
@@ -149,14 +251,14 @@ The results of the memory footprint analysis are summarized in Table \ref{tab:me
 \begin{table}[htb]
 \centering
 \small % Reduce the font size for the table
-\caption{Memory Analysis of Controller Implementations.}
+\caption{Memory Analysis of Controller Implementations, adapted from \cite{tavaresgomes2026}.}
 \label{tab:memory_footprint}
 \sisetup{group-separator={,}}
 % Using abbreviated headers to save space
 \begin{tabular}{l S[table-format=6.0] S[table-format=6.0] S[table-format=5.0] S[table-format=1.2]}
 \toprule
-\textbf{Controller} & {\textbf{Baseline}} & {\textbf{W/ Comm.}} & {\textbf{Overhead}} & {\textbf{Overhead}} \\
-& {\textbf{(B)}} & {\textbf{(B)}} & {\textbf{(B)}} & {\textbf{(\%)}} \\
+\textbf{Controller ESP} & {\textbf{Baseline}} & {\textbf{W/ Comm.}} & {\textbf{Overhead}} & {\textbf{Overhead}} \\
+& {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(\%)}} \\
 \midrule
 Entrance & 927970 & 954178 & 26208 & 2.82 \\
 Two & 928578 & 955894 & 27316 & 2.94 \\
@@ -176,6 +278,20 @@ The \textbf{Entrance Controller} and \textbf{Controller Two}, both of which impl
 This is further corroborated by the data from the \textbf{Exit Controller}. This module, which implements \textit{only} the UART protocol for simple point-to-point asynchronous communication, shows a remarkably low overhead of just 1,420 bytes (a mere 0.15\% increase). This stark contrast highlights the lightweight nature of hardware-level serial protocols compared to their network-level counterparts, as the former can be implemented with minimal software abstraction.
 
 These findings have significant implications for the design of distributed embedded systems. The model-driven development approach, augmented by the tool presented in this thesis, allows a designer to make informed decisions during the system partitioning phase. By analyzing the communication requirements of each sub-model, complex and memory-intensive protocols like TCP/MQTT can be selectively deployed only on controllers that require network connectivity. Simpler nodes can be implemented with lightweight protocols like UART or I2C, thus optimizing the overall system's resource usage and ensuring that hardware constraints are met.
+
+
+
+\subsection{Dynamic Behavior Validation}
+\label{subsec:dynamic_validation}
+
+Beyond the static analysis of memory consumption, a validation of the system's dynamic behavior was also performed. The integrated simulator within IOPT-Tools was used to capture a timing diagram of \textit{Controller Two}'s execution, enabling a detailed analysis of its operational logic over time.
+
+Figure \ref{fig:timing_diagram_controller2} presents this timing diagram. The diagram illustrates the direct correlation between the internal state of the Petri net (the markings of places, such as \texttt{p\_11/ppb}) and the controller's actions in the physical world (the activation of the \texttt{movei\_2} signal). It is possible to observe, for example, how the arrival of an external communication event (e.g., \texttt{event37\_td\_1}) initiates a sequence of transition firings that alter the net's marking and ultimately result in the activation of a physical output.
+
+This analysis confirms that the C++ code, automatically generated and deployed on the hardware, faithfully preserves the precise operational semantics specified in the original IOPT model.
+
+
+
 
 % ===================================================================
 % Section 4.5: Chapter Summary
