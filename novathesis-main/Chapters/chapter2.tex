@@ -285,6 +285,22 @@ At the destination, received packets undergo processing according to the specifi
 
 \end{enumerate}
 
+
+Beyond transport protocols, higher-level messaging protocols have been developed to facilitate lightweight asynchronous communication between distributed systems. Two particularly relevant protocols in the context of distributed IOPT sub-models and GALS-based communication are \textbf{MQTT} (Message Queuing Telemetry Transport) and its derivative \textbf{MQTT-SN} (MQTT for Sensor Networks).
+ 
+MQTT is a lightweight publish/subscribe messaging protocol originally designed for machine-to-machine (M2M) communication over unreliable or constrained networks \cite{oasis2019mqtt, banks2014mqtt}. Typically running on top of TCP, MQTT employs a broker-based architecture in which clients publish messages to topics managed by a central broker, while subscribers receive messages corresponding to the topics of interest. This decoupling of producers and consumers improves scalability and simplifies asynchronous communication in distributed environments.
+
+One of MQTT’s defining features is its three Quality of Service (QoS) levels, which allow tailoring reliability guarantees to application requirements: QoS 0 (at most once), QoS 1 (at least once), and QoS 2 (exactly once) \cite{oasis2019mqtt}. These options provide flexibility between minimizing latency and ensuring reliable delivery. The low overhead and efficient packet structure make MQTT particularly suitable for distributed IOPT systems, where GALS modules require asynchronous, topic-driven coordination with configurable trade-offs between latency and reliability.
+
+MQTT-SN extends the MQTT concepts to environments where devices may have severe resource constraints or lack complete TCP / IP support, such as sensor networks and embedded systems \cite{singh2015mqttsn, confusion2013mqttsn}. Unlike MQTT, which assumes a TCP transport, MQTT-SN is designed to run over connectionless transports like UDP or even directly over serial or IEEE 802.15.4 links. Introduces optimizations such as replacing string-based topic names with short integer identifiers and providing lightweight session management \cite{singh2015mqttsn}. 
+
+These adaptations significantly reduce message overhead, making MQTT-SN more appropriate for constrained distributed IOPT sub-models deployed in resource-limited contexts. Moreover, the combination of UDP-based transport and compact message formats reduces communication latency, an essential requirement in GALS systems where asynchronous interactions between modules must be timely. Reliability, when needed, can be addressed through MQTT-SN’s QoS support or modeled explicitly at the IOPT Petri net layer, ensuring that protocol simplicity does not compromise system correctness.
+
+\paragraph{Comparison and Suitability}
+Although MQTT is widely adopted in IoT applications due to its reliability and the structured publish / subscribe model, its reliance on TCP introduces connection management overhead and potential latency \cite{banks2014mqtt}. MQTT-SN, on the contrary, trades some of the reliability guarantees of TCP for lower latency and efficiency, which makes it particularly attractive for asynchronous real-time communication in distributed IOPT/GALS systems. The choice between them thus depends on the constraints of the system: MQTT may be more suitable when strong reliability and established broker infrastructure are required, whereas MQTT-SN aligns better with scenarios that emphasize lightweight, low-latency exchanges under strict resource constraints.
+
+
+
  
 %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%

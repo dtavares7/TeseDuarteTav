@@ -23,11 +23,11 @@ This chapter presents the design, implementation, and validation of the proposed
 % Section 3.1
 % ===================================================================
 
-\section{Key Design Decisions}
+\section{System Architecture}
 \label{sec:design_decisions}
 
-The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}(mudar), which resides on a web server and is responsible for processing all incoming requests.
 
+The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}, which resides on a web server and is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{git-link-ver-depois}}.
 
 
 \begin{enumerate}
@@ -47,7 +47,6 @@ The tool is implemented as a server-side web Application Programming Interface (
 \end{figure}
 
 
-The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}, which resides on a web server and is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{git-link-ver-depois}}.
 
 % ===================================================================
 % Section 3.2   -----------
@@ -177,7 +176,7 @@ In addition to the global parameters, each protocol requires or accepts a unique
 \section{Analysis of Generated Code}
 \label{sec:code_analysis}
 
-This section presents and analyzes the concrete C++ source code produced by the implemented API. \textbf{Crucially, the generated code is specifically designed to be inserted into the \texttt{net\_io.c} file, a standard output of the IOPT-Tools C code generator that serves as the hardware interface layer for the Petri net logic.} For each of the three supported protocols, a sample API call is provided, followed by an analysis of the generated code's structure and key features. The full, verbatim source code for each example is available in the appendices for complete reference.
+This section presents and analyzes the concrete C++ source code produced by the implemented API. Crucially, the generated code is specifically designed to be inserted into the \texttt{net\_io.c} file, a standard output of the IOPT-Tools C code generator that serves as the hardware interface layer for the Petri net logic. \textbf{Because the API generates C++ code to support modern libraries (e.g., for I²C or MQTT), it is a mandatory step to rename this file from \texttt{net\_io.c} to \texttt{net\_io.cpp}. This change ensures that the compiler uses the C++ compiler, allowing for the successful integration of the generated modules.} For each of the three supported protocols, a sample API call is provided, followed by an analysis of the generated code structure and key features. The full, verbatim source code for each example is available in the appendices for complete reference.
 
 % -------------------------------------------------------------------
 % Subsection 3.4.1: I2C Protocol
@@ -227,7 +226,20 @@ UART communication is ideal for point-to-point serial data exchange and does not
 
 The complete source code generated for this UART example can be found in \textbf{Appendix \ref{appendix:uart}}.
 
-The implementation creates a \texttt{HardwareSerial} object for communication, preserving the primary serial port for debugging [cite: 594-596]. The code is symmetric, providing functions for sending and receiving data. Reception is handled by polling the serial buffer. When a valid message is received, its content is compared against a predefined constant. A match sets a \texttt{volatile} flag to signal the event to the synchronous \texttt{SystemA\_GetInputSignals()} function, effectively decoupling the asynchronous serial input from the model execution.
+
+The implementation creates a \texttt{HardwareSerial} object for communication, preserving the primary serial port for debugging [cite: 594-596]. The code is symmetric, providing functions for sending and receiving data. Reception is handled by polling the serial buffer. When a valid message is received, its content is compared against a predefined constant. A match sets a \texttt{volatile} flag to signal the event to the synchronous \texttt{SystemA\_GetInputSignals()} function, effectively decoupling the asynchronous serial input from the model execution.Its core of the receiver's logic, which polls the serial buffer and sets the event flag, is shown below:
+
+\begin{verbatim}
+// Snippet from UART Receiver Code
+
+void waitMessageUart() {
+    String receivedMessage = receiveDataUart();
+    if (receivedMessage.length() > 0 &&
+     receivedMessage == message_uart_toggleLED) {
+        toggleLED_trigger_flag = true;
+    }
+}
+\end{verbatim}
 
 % -------------------------------------------------------------------
 % Subsection 3.4.3: TCP/MQTT Protocol
@@ -244,7 +256,20 @@ topic=sensors/events
 
 The complete listing of the generated code for this TCP/MQTT example is available in \textbf{Appendix \ref{appendix:tcp}}.
 
-The code leverages the \texttt{PubSubClient.h} library to manage the MQTT connection [cite: 653]. The logic is centered around a \texttt{callback} function, which is triggered by the library upon receiving a message on a subscribed topic [cite: 677-678, 682]. Inside the callback, the message payload is compared to an expected event string. A match sets a \texttt{volatile} flag for the synchronous \texttt{SensorNetwork\_GetInputSignals()} function. The code also includes a \texttt{reconnect} function to automatically re-establish the connection to the broker if it is lost, enhancing the system's resilience.
+The code leverages the \texttt{PubSubClient.h} library to manage the MQTT connection [cite: 653]. The logic is centered around a \texttt{callback} function, which is triggered by the library upon receiving a message on a subscribed topic [cite: 677-678, 682]. Inside the callback, the message payload is compared to an expected event string. A match sets a \texttt{volatile} flag for the synchronous \texttt{SensorNetwork\_GetInputSignals()} function. The code also includes a \texttt{reconnect} function to automatically re-establish the connection to the broker if it is lost, enhancing the system's resilience.The event-driven nature of the MQTT subscriber is centered on the callback function, as shown in this snippet:
+
+\begin{verbatim}
+// Snippet from MQTT Receiver Code
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    String msg = "";
+    for (int i=0; i<length; i++) msg += (char)payload[i];
+    
+    if (msg == String(message_tcp_alert)) {
+        alert_trigger_flag = true;
+    }
+}
+\end{verbatim}
 
 
 

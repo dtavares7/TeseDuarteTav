@@ -202,7 +202,10 @@ The successful validation of all three communication modules confirms the tool's
 % ===================================================================
 
 \subsection{Code Integration}
-For each controller, the baseline logic code was first generated using the standard IOPT-Tools generator, creating a \texttt{net\_io.c} file[cite: 425]. Subsequently, the specific communication modules produced by the API calls were inserted directly into this \texttt{net\_io.c} file, completing the hardware-specific implementation. The entire process of specifying, generating, and integrating the code for all three heterogeneous communication links was completed in a fraction of the time required for manual implementation. This successfully demonstrates the tool's primary objective: to accelerate the development of distributed control systems and reduce the potential for implementation errors by automating the creation of communication infrastructure.
+\label{subsec:code_integration}
+
+For each controller, the baseline logic code was first generated using the standard IOPT-Tools generator, creating a \texttt{net\_io.c} file. \textbf{As a mandatory first step, this file was renamed to \texttt{net\_io.cpp} to enable C++ compilation, a requirement for the libraries used by the generated communication modules.} Subsequently, the specific communication modules produced by the API calls were inserted directly into this renamed \texttt{net\_io.cpp} file, completing the hardware-specific implementation. The entire process of specifying, generating, and integrating the code for all three heterogeneous communication links was completed in a fraction of the time required for manual implementation]. This successfully demonstrates the tool's primary objective: to accelerate the development of distributed control systems and reduce the potential for implementation errors by automating the creation of communication infrastructure.
+
 % ===================================================================
 % Section 4.4: Performance Analysis and Results
 % ===================================================================
