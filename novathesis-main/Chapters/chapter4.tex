@@ -28,7 +28,7 @@ To achieve this, a case study is presented centered on a distributed controller 
 \begin{enumerate}
     \item \textbf{To validate the end-to-end development workflow:} This involves demonstrating how the IOPT-Tools framework and the newly developed API are jointly employed to support low-code development of a distributed system. The process begins with a global IOPT model, proceeds through model decomposition, and culminates in the automatic generation and integration of both the controller logic and heterogeneous communication modules.
     
-    \item \textbf{To conduct a quantitative performance analysis:} By implementing intercontroller communication using three distinct protocols, I2C, UART, and TCP/MQTT. This chapter provides an empirical comparison of their respective resource overheads. ]The analysis focuses specifically on the memory footprint, offering valuable insight into the trade-offs associated with each protocol in a resource-constrained embedded environment.
+    \item \textbf{To conduct a quantitative performance analysis:} By implementing intercontroller communication using three distinct protocols, \gls{i2c}, UART, and TCP/MQTT. This chapter provides an empirical comparison of their respective resource overheads. The analysis focuses specifically on the memory footprint, offering valuable insight into the trade-offs associated with each protocol in a resource-constrained embedded environment.
 \end{enumerate}
 
 This chapter begins by describing the conveyor system use case and its corresponding IOPT model. Then it details the implementation process, showing how the automated tool was used to generate the necessary communication code. Subsequently, the results of the performance analysis are presented and discussed. The chapter concludes with a summary of the key findings of the case study.
@@ -83,7 +83,7 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 \begin{figure*}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Chapters/Figures/prototypelayout.png}
-\caption{The heterogeneous deployment architecture for the distributed conveyor system controller, utilizing I²C, UART, and MQTT over TCP/IP for inter-controller communication and synchronization, adapted from \cite{tavaresgomes2026}.}
+\caption{The heterogeneous deployment architecture for the distributed conveyor system controller, utilizing \gls{i2c}, UART, and MQTT over TCP/IP for inter-controller communication and synchronization, adapted from \cite{tavaresgomes2026}.}
     \label{fig:deployment_layout}
 \end{figure*}
 
@@ -91,41 +91,41 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 % ===================================================================
 % Revised Subsection 4.3.1 with Integrated Validation
 % ===================================================================
-\subsection{I²C Bus Implementation}
-As depicted in the deployment architecture (Figure \ref{fig:deployment_layout}), \textit{Controller Two} acts as the master on a local I²C bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, two API calls similar to the following were used:
+\subsection{\gls{i2c} Bus Implementation}
+As depicted in the deployment architecture (Figure \ref{fig:deployment_layout}), \textit{Controller Two} acts as the master on a local \gls{i2c} bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, two API calls similar to the following were used:
 
 \begin{verbatim}
-?protocol=i2c&projectName=ControllerTwo&eventName=event37_td_1
+?protocol=\gls{\gls{i2c}}&projectName=ControllerTwo&eventName=event37_td_1
 &slaveAddress=8&slaveMessage=A
 \end{verbatim}
 
 And for the second event:
 \begin{verbatim}
-?protocol=i2c&projectName=ControllerTwo&eventName=event49_td_3
+?protocol=\gls{i2c}&projectName=ControllerTwo&eventName=event49_td_3
 &slaveAddress=9&slaveMessage=B
 \end{verbatim}
 
-To validate the functional behavior of the generated I²C module, the execution of \textit{Controller Two} was captured using the IOPT-Tools simulator. The resulting timing diagram, presented in Figure \ref{fig:timing_diagram_controller2}, provides a detailed view of the controller's operational logic and illustrates the direct correlation between the external I²C communication events and the internal state of the Petri net.  
+To validate the functional behavior of the generated \gls{i2c} module, the execution of \textit{Controller Two} was captured using the IOPT-Tools simulator. The resulting timing diagram, presented in Figure \ref{fig:timing_diagram_controller2}, provides a detailed view of the controller's operational logic and illustrates the direct correlation between the external \gls{i2c} communication events and the internal state of the Petri net.  
 
-The behavior can be analyzed by observing the two primary I²C messages:
+The behavior can be analyzed by observing the two primary \gls{i2c} messages:
 \begin{itemize}
-    \item \textbf{Event \texttt{event37\_td\_1}:} The sequence shows an internal state change, where the marking of a place (e.g., \texttt{p\_11/ppb}) enables the firing of a transition (e.g., \texttt{t\_27/t11}). The diagram confirms that the firing of this transition directly causes the generation of the output signal \texttt{event37\_td\_1}. This corresponds to \textit{Controller Two}, acting as the I²C master, sending a command to one of its slaves (such as \textit{Controller Entrance}).
+    \item \textbf{Event \texttt{event37\_td\_1}:} The sequence shows an internal state change, where the marking of a place (e.g., \texttt{p\_11/ppb}) enables the firing of a transition (e.g., \texttt{t\_27/t11}). The diagram confirms that the firing of this transition directly causes the generation of the output signal \texttt{event37\_td\_1}. This corresponds to \textit{Controller Two}, acting as the \gls{i2c} master, sending a command to one of its slaves (such as \textit{Controller Entrance}).
 
-    \item \textbf{Event \texttt{event49\_td\_3}:} Later in the execution cycle, after the physical process has evolved (indicated by changes in signals like \texttt{outi\_2}), the Petri net reaches a new state. This leads to another transition firing, which in turn causes the generation of the second I²C message, \texttt{event49\_td\_3}. This represents \textit{Controller Two} sending a subsequent command to another slave (such as \textit{Controller Three}).
+    \item \textbf{Event \texttt{event49\_td\_3}:} Later in the execution cycle, after the physical process has evolved (indicated by changes in signals like \texttt{outi\_2}), the Petri net reaches a new state. This leads to another transition firing, which in turn causes the generation of the second \gls{i2c} message, \texttt{event49\_td\_3}. This represents \textit{Controller Two} sending a subsequent command to another slave (such as \textit{Controller Three}).
 \end{itemize}
 
-This analysis confirms that the API-generated I²C communication module functions correctly and that the deployed hardware implementation faithfully reproduces the semantics of the original IOPT model.
+This analysis confirms that the API-generated \gls{i2c} communication module functions correctly and that the deployed hardware implementation faithfully reproduces the semantics of the original IOPT model.
 
 
 \begin{figure}[htb!]
     \centering
     \includegraphics[width=\columnwidth]{Chapters/Figures/timing_diagram_controller2.png}
-    \caption{Timing diagram for \textit{Controller Two}, showing how internal Petri net states (p\_...) and transition firings (t\_...) lead to the generation of I²C output events (\texttt{event37\_td\_1}, \texttt{event49\_td\_3}).}
+    \caption{Timing diagram for \textit{Controller Two}, showing how internal Petri net states (p\_...) and transition firings (t\_...) lead to the generation of \gls{i2c} output events (\texttt{event37\_td\_1}, \texttt{event49\_td\_3}).}
     \label{fig:timing_diagram_controller2}
 \end{figure}
 
 
-This complete validation of the I²C module demonstrates the tool's ability to correctly implement the master-slave bus communication as specified by the IOPT model.
+This complete validation of the \gls{i2c} module demonstrates the tool's ability to correctly implement the master-slave bus communication as specified by the IOPT model.
 
 
 
@@ -218,7 +218,7 @@ After successfully implementing the distributed controller for the conveyor syst
 
 To empirically validate the generated code and conduct the performance analysis, a physical hardware testbed was constructed, representing the distributed controller architecture shown in Figure \ref{fig:deployment_layout}. 
 
-The testbed, photographed in Figure \ref{fig:hardware_photo}, consists of four ESP32-WROOM-32 development boards. These boards were interconnected using a combination of direct wiring and a shared bus on a breadboard to physically realize the I²C and UART communication links. The TCP/MQTT communication was facilitated by the built-in Wi-Fi capabilities of the ESP32s, which allows them to connect to a shared network. This physical prototype served as the basis for all the validation and performance measurements presented in this chapter.
+The testbed, photographed in Figure \ref{fig:hardware_photo}, consists of four ESP32-WROOM-32 development boards. These boards were interconnected using a combination of direct wiring and a shared bus on a breadboard to physically realize the \gls{i2c} and UART communication links. The TCP/MQTT communication was facilitated by the built-in Wi-Fi capabilities of the ESP32s, which allows them to connect to a shared network. This physical prototype served as the basis for all the validation and performance measurements presented in this chapter.
 
 \begin{figure}[htb!]
     \centering
@@ -367,6 +367,6 @@ The model-driven approach, augmented by the tool presented in this thesis, empow
 \section{Chapter Summary}
 \label{sec:case_study_summary}
 
-This chapter successfully demonstrated the practical application and value of the automated code generation tool through a detailed case study of a three-conveyor distributed control system. The work presented here validated the entire model-driven development workflow, beginning with a high-level IOPT Petri net model and culminating in a functional, multi-controller hardware implementation . The tool was shown to seamlessly integrate into this workflow, allowing the rapid and reliable implementation of a complex and heterogeneous communication architecture that involves I2C, UART, and TCP/MQTT protocols.
+This chapter successfully demonstrated the practical application and value of the automated code generation tool through a detailed case study of a three-conveyor distributed control system. The work presented here validated the entire model-driven development workflow, beginning with a high-level IOPT Petri net model and culminating in a functional, multi-controller hardware implementation . The tool was shown to seamlessly integrate into this workflow, allowing the rapid and reliable implementation of a complex and heterogeneous communication architecture that involves \gls{i2c}, UART, and TCP/MQTT protocols.
 
-Furthermore, the performance analysis provided critical quantitative insight into the resource consumption and temporal characteristics of these protocols. The results empirically confirmed the significant trade-offs in \textbf{memory overhead and communication latency} between network-level protocols like TCP/MQTT and the lightweight, high-speed nature of hardware-level protocols such as UART and I²C . Ultimately, this case study validates the central proposition of this thesis: that automated generation of communication modules not only accelerates development, but also empowers designers to make informed, data-driven decisions when balancing functional requirements against the hardware constraints of embedded systems.
+Furthermore, the performance analysis provided critical quantitative insight into the resource consumption and temporal characteristics of these protocols. The results empirically confirmed the significant trade-offs in \textbf{memory overhead and communication latency} between network-level protocols like TCP/MQTT and the lightweight, high-speed nature of hardware-level protocols such as UART and \gls{i2c} . Ultimately, this case study validates the central proposition of this thesis: that automated generation of communication modules not only accelerates development, but also empowers designers to make informed, data-driven decisions when balancing functional requirements against the hardware constraints of embedded systems.
