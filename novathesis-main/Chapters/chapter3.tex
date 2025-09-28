@@ -26,26 +26,20 @@ This chapter presents the design, implementation, and validation of the proposed
 \section{System Architecture}
 \label{sec:design_decisions}
 
+The tool is implemented as a server-side web Application Programming Interface (API), an architectural choice that decouples the code generation logic from the end-user's local environment while providing a platform-independent and highly accessible solution. At the core of the system lies a single PHP script, \texttt{gals.php}, hosted on a web server, which is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{git-link-ver-depois}}. The overall architectural workflow, depicted in Figure~\ref{fig:api_Workflow}, illustrates the sequence of interactions from the user's request to the delivery of the generated C++ code.
 
-The tool is implemented as a server-side web Application Programming Interface (API). This architecture decouples the code generation logic from the end-user's local environment, providing a platform-independent and highly accessible solution. The core of the system is a single PHP script, \texttt{gals.php}, which resides on a web server and is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{git-link-ver-depois}}.
+The process begins with the user, or an automated client, constructing a Hypertext Transfer Protocol (HTTP) GET request containing a set of URL parameters. These parameters specify the desired communication protocol (I²C, UART, or TCP/MQTT) and its configuration, including details such as slave addresses, baud rates, or topic names, as defined in Section~\ref{sec:api_spec}. Upon receiving the request, the web server, which can be implemented using common platforms such as Apache or Nginx, acts as the public-facing entry point and forwards the request to the \texttt{gals.php} script for processing.
 
+Within the PHP script, the input parameters are first parsed and sanitized, then validated against the API specification to ensure completeness and correctness. Based on the selected protocol, the script retrieves the corresponding pre-written C++ code template, which contains placeholders for the protocol-specific configuration values. These templates serve as skeletons for each supported communication protocol, enabling modularity and separation of generation logic from code structure. The script dynamically populates the template with the user-provided parameters and assembles the final C++ source code as a string, ready for integration. In cases of missing or invalid parameters, the script generates an HTTP 400 error response with a descriptive message, ensuring robust error handling.
 
-\begin{enumerate}
-    \item \textbf{User Request:} The user constructs a Hypertext Transfer Protocol (HTTP) GET request that contains a set of URL parameters. These parameters specify the desired communication protocol and its configuration, as detailed in Section ~\ref{sec:api_spec}.
-    \item \textbf{Server-Side Processing:} The web server receives the request and forwards it to the \texttt{gals.php}(mudar) script. The script parses and validates the input parameters, selects the appropriate code template based on the chosen protocol, and dynamically populates it with the user-provided values.
-    \item \textbf{Code Generation:} The script generates the complete C++ source code tailored to the user's specifications. In the event of invalid or missing parameters, the script generates an appropriate HTTP 400 error response.
-    \item \textbf{HTTP Response:} The server sends the generated code back to the user within an HTTP response. \textbf{This code is formatted as a set of C++ functions and definitions intended for integration into the IOPT-Tools-generated \texttt{net\_io.c} file.}
-\end{enumerate}
+Finally, the generated C++ code is returned to the user within the body of the HTTP response. This output is formatted as a set of functions and definitions specifically designed for direct integration into the \texttt{net\_io.cpp} file produced by the IOPT-Tools environment. By centralizing the code generation logic on the server and leveraging templates for each protocol, the API provides a reliable, repeatable, and platform-independent method to produce communication modules tailored to the user’s system model.
 
 \begin{figure}[h!]
-    \centering
-    % In your actual document, you would use \includegraphics{path/to/your/diagram.png}
-    % The tag below is a placeholder to represent the visual diagram.
-    
-    \caption{The architectural workflow of the code generation API, from user request to the generated code response.(mudar)}
-    \label{fig:api_workflow}
+   \centering
+   \includegraphics[width=1\textwidth]{Chapters/Figures/apiWorkflow.png}
+   \caption{The architectural workflow of the code generation API, illustrating the sequential steps from the user request to the generated C++ code response.}
+   \label{fig:api_Workflow}
 \end{figure}
-
 
 
 % ===================================================================
@@ -55,11 +49,16 @@ The tool is implemented as a server-side web Application Programming Interface (
 \section{Design Rationale}
 \label{sec:design_rationale}
 
-A Web API was chosen over a standalone desktop application or a command-line tool primarily for its inherent **platform independence** and **accessibility**. This approach eliminates the need for users to install any specialized software; the tool can be accessed from any device with a web browser or a standard HTTP client. This aligns with the web-based nature of the IOPT-Tools environment itself.
 
-The choice of PHP as the implementation language for the proposed tool was motivated by several considerations. First, PHP is inherently designed as a server-side scripting language, well suited for handling web requests and generating dynamic content, which constitutes the core functionality of the tool. Second, since code generation is fundamentally a text manipulation task, the extensive library of built-in string processing functions of PHP greatly facilitated the development of the code templating engine. Third, PHP remains one of the most widely deployed back-end languages, with near-universal support across web hosting providers, thereby ensuring that the tool is both easily deployable and maintainable. Finally, the decision aligns strategically with the IOPT-Tools ecosystem, which itself is structured as a comprehensive web-based development environment. The adoption of a prominent server-side technology such as PHP thus maximizes architectural compatibility and establishes a clear path toward seamless integration of the code generation tool into the main IOPT-Tools web interface.
+The design and implementation of the code generation tool involved several key decisions regarding its architecture, technology stack, and API protocol. Each choice was guided by the objectives of platform independence, usability, and seamless integration with the existing IOPT-Tools ecosystem, and is discussed below with a rationale comparing alternative approaches.
 
-Although modern APIs often employ POST requests with JSON payloads, a simpler GET-based interface was selected for this application, as it offers several advantages particularly suited to the intended use case. First, GET requests can be constructed and tested directly in a web browser's address bar, greatly facilitating debugging, demonstration, and user adoption; this approach is explicitly supported through the tool’s dedicated help page (\texttt{help.php}). Second, since each code generation request represents an independent and self-contained transaction, the stateless nature of GET requests provides a natural fit, eliminating the need to maintain server-side session state between consecutive requests. Finally, a complete API call, including all its parameters, is encapsulated within a single URL. This feature enhances usability by allowing users to easily save, bookmark, and share specific code generation configurations.
+The tool was conceived as a server-side Web API rather than a standalone desktop application or a command-line interface. This architectural decision was motivated primarily by the goals of accessibility and platform independence: a Web API can be accessed from any device with a web browser or a standard HTTP client without requiring software installation, whereas desktop applications require separate builds for each operating system, and command-line tools often depend on a specific runtime environment and user familiarity with terminal commands. Furthermore, the Web API architecture facilitates seamless integration with the web-based IOPT-Tools environment, allowing the code generation functionality to be incorporated into the existing front-end workflow. Centralized deployment also simplifies maintenance, as updates and bug fixes applied on the server are instantly available to all users, in contrast to desktop or CLI solutions that require distributing updates to individual installations.
+
+The selection of PHP as the implementation language was a deliberate choice after evaluating alternatives such as Python with Flask or FastAPI, and Node.js with Express. PHP is particularly well-suited for code generation tasks which fundamentally involve sophisticated string manipulation and template processing. Its extensive built-in string handling functions greatly simplify the implementation of the code templating engine, while its server-side simplicity and "shared-nothing" request-response model align naturally with the stateless operation of the API. Additionally, PHP is one of the most widely deployed back-end languages, supported by virtually all web hosting providers, which ensures ease of deployment and long-term maintainability. Another important consideration is the future integration of this API with the IOPT-Tools platform, which itself is implemented in PHP; adopting the same language ensures architectural compatibility and a smooth path for integration, allowing the code generation tool to become a native component of the IOPT-Tools web environment.
+
+Although modern RESTful API design often favors \texttt{POST} requests with JSON payloads to handle structured data, a simpler \texttt{GET-based} interface was intentionally chosen for this application. This approach offers practical advantages in usability, debugging, and reproducibility: \texttt{GET} requests can be easily constructed and tested directly in a web browser's address bar, facilitating rapid experimentation and demonstration, and the tool's dedicated help page (\texttt{help.php}) provides additional guidance for users. Since each code generation request is independent, the stateless and idempotent nature of \texttt{GET} requests ensures predictable behavior without the need to maintain the server-side session state. Finally, encapsulating the complete API call, including all configuration parameters, within a single URL enhances shareability and allows users to bookmark or distribute specific code generation configurations, as detailed in Section~\ref{sec:api_spec}.
+
+Overall, the combined choice of a server-side Web API implemented in PHP with a \texttt{GET}-based interface achieves the project's goals of accessibility, maintainability, and seamless integration. By evaluating alternative approaches and emphasizing usability, the tool provides a robust and user-friendly solution for automated code generation within the IOPT-Tools ecosystem.
 
 
 
@@ -82,7 +81,7 @@ Through these mappings, the tool establishes a systematic and consistent corresp
 
 
 % ===================================================================
-% Section 3.3: 
+% Section 3.4: 
 % ===================================================================
 
 \section{Application Programming Interface (API) Specification}
@@ -171,150 +170,190 @@ In addition to the global parameters, each protocol requires or accepts a unique
 
 
 % ===================================================================
-% Section 3.4: 
+% Section 3.5: 
 % ===================================================================
+
 \section{Analysis of Generated Code}
-\label{sec:code_analysis}
+\label{sec:analysis_of_code}
 
-This section presents and analyzes the concrete C++ source code produced by the implemented API. Crucially, the generated code is specifically designed to be inserted into the \texttt{net\_io.c} file, a standard output of the IOPT-Tools C code generator that serves as the hardware interface layer for the Petri net logic. \textbf{Because the API generates C++ code to support modern libraries (e.g., for I²C or MQTT), it is a mandatory step to rename this file from \texttt{net\_io.c} to \texttt{net\_io.cpp}. This change ensures that the compiler uses the C++ compiler, allowing for the successful integration of the generated modules.} For each of the three supported protocols, a sample API call is provided, followed by an analysis of the generated code structure and key features. The full, verbatim source code for each example is available in the appendices for complete reference.
+This section presents and analyzes the concrete C++ source code produced by the API. The generated code is specifically designed for integration into the \texttt{net\_io.c} file, a standard output of the IOPT-Tools C code generator that serves as the hardware interface layer. As the API generates C++ to leverage modern libraries (e.g., for I2C and MQTT), it is a mandatory step to rename this file to \texttt{net\_io.cpp} to ensure the C++ compiler is used.
 
-% -------------------------------------------------------------------
-% Subsection 3.4.1: I2C Protocol
-% -------------------------------------------------------------------
-\subsection{I²C-Based Communication Channel}
-\label{subsec:i2c_analysis}
+A critical challenge in integrating external communication is bridging the gap between asynchronous events (e.g., the arrival of a network packet or a bus message) and the synchronous, deterministic execution cycle of the Petri net model. To address this, a consistent software design pattern—the **"asynchronous-to-synchronous bridge"**—is employed across all generated modules. This pattern uses a \texttt{volatile} boolean flag to safely signal the occurrence of an external event to the main synchronous loop. The following subsections analyze the specific implementation of this pattern for each supported protocol.
 
-The I²C protocol is well-suited for communication on a shared bus, following a master-slave paradigm. The API generates code for both master and slave controllers to facilitate this model.
+\subsection{I2C-Based Communication Channel}
+The I2C protocol is well-suited for communication on a shared bus, following a master-slave paradigm. The API generates distinct code for master and slave controllers.
 
-To generate the code for a project named `DemoProject` handling an event named `buttonPress`, the following API call is made:
+\noindent\textbf{Sample API Call (Slave):}
 \begin{verbatim}
 ?protocol=i2c&projectName=DemoProject&eventName=buttonPress&
 slaveAddress=9&slaveMessage=P
 \end{verbatim}
 
-The complete C++ source code generated by the API call is provided in \textbf{Appendix \ref{appendix:i2c}}.
-
-A key feature of the slave controller's implementation is the safe handling of asynchronous events. To communicate an event from the hardware-triggered Interrupt Service Routine (ISR) to the main synchronous execution loop, a \texttt{volatile} boolean flag is employed. This critical design pattern, which prevents compiler optimizations that could lead to race conditions, is illustrated in the following snippet:
+The slave controller's code, shown in Listing~\ref{lst:i2c_slave}, relies on an **Interrupt Service Routine (ISR)** for event detection. This is an efficient, event-driven approach where the microcontroller's hardware immediately executes the \texttt{receiveI2CEvent} function upon data arrival, without requiring the main loop to continuously check for messages.
 
 \begin{verbatim}
-// Snippet from Slave Controller Code 
+// PART 1: Global scope definitions
+#include <Wire.h>
+#define I2C_SLAVE_ADDRESS 9
+#define CMD_TRIGGER_EVENT 'P'
+volatile bool event_trigger_flag = false; // The volatile flag
 
-// PART 1: Defined in the global scope
-volatile bool buttonPress_trigger_flag = 0;
+// PART 2: In DemoProject_InitializeIO()
+Wire.begin(I2C_SLAVE_ADDRESS);
+Wire.onReceive(receiveI2CEvent); // Register the ISR
 
-// ...
-
-// PART 3: Polled within the synchronous DemoProject_GetInputSignals()
-if (buttonPress_trigger_flag == 1) {
+// PART 3: In DemoProject_GetInputSignals()
+if (event_trigger_flag == true) {
     events->buttonPress = 1;
-    buttonPress_trigger_flag = 0; // Reset the flag after processing
+    event_trigger_flag = false; // Reset the flag after processing
+}
+
+// PART 4: ISR function (asynchronous context)
+void receiveI2CEvent(int byteCount) {
+    if (Wire.available() > 0) {
+        char command = Wire.read();
+        if (command == CMD_TRIGGER_EVENT) {
+            event_trigger_flag = true; // Set flag inside ISR
+        }
+    }
 }
 \end{verbatim}
-This pattern ensures that the event is processed reliably and decouples the asynchronous hardware interrupt from the synchronous Petri net execution cycle. The master controller code is more straightforward, with a dedicated function that encapsulates the I²C write operation (see Appendix \ref{appendix:i2c} for the complete listing).
 
-% -------------------------------------------------------------------
-% Subsection 3.4.2: UART Protocol
-% -------------------------------------------------------------------
+The core of the asynchronous-to-synchronous bridge is the \texttt{volatile bool event\_trigger\_flag}. The \texttt{volatile} keyword is critical: it instructs the compiler not to apply optimizations to this variable, ensuring that every read of the flag in the main loop fetches its true, up-to-date value from memory, which may have been modified at any time by the ISR. This prevents potential race conditions and ensures the event is reliably detected by the synchronous Petri net logic.
+
 \subsection{UART-Based Communication Channel}
-\label{subsec:uart_analysis}
-UART communication is ideal for point-to-point serial data exchange and does not rely on a shared clock. The generated code supports bidirectional communication between two peer controllers.
+UART communication is ideal for point-to-point serial data exchange. Unlike the ISR-driven I2C slave, the UART implementation uses **polling**.
 
-\paragraph{Sample API Call.}
+\noindent\textbf{Sample API Call:}
 \begin{verbatim}
 ?protocol=uart&projectName=SystemA&eventName=toggleLED&baudRate=9600
 \end{verbatim}
 
-The complete source code generated for this UART example can be found in \textbf{Appendix \ref{appendix:uart}}.
-
-
-The implementation creates a \texttt{HardwareSerial} object for communication, preserving the primary serial port for debugging [cite: 594-596]. The code is symmetric, providing functions for sending and receiving data. Reception is handled by polling the serial buffer. When a valid message is received, its content is compared against a predefined constant. A match sets a \texttt{volatile} flag to signal the event to the synchronous \texttt{SystemA\_GetInputSignals()} function, effectively decoupling the asynchronous serial input from the model execution.Its core of the receiver's logic, which polls the serial buffer and sets the event flag, is shown below:
+In the code shown in Listing~\ref{lst:uart_receiver}, the main loop actively checks for incoming data in each cycle by calling \texttt{MySerial.available()}. This polling approach is simpler to implement than ISRs and avoids some complexities of interrupt programming. However, it relies on the Petri net's execution cycle being fast enough to check the serial buffer before it overflows. This presents a classic trade-off in embedded systems: ISRs offer lower latency and higher responsiveness at the cost of complexity, while polling is simpler but can potentially miss events in systems with a slow or variable loop rate.
 
 \begin{verbatim}
-// Snippet from UART Receiver Code
+// PART 1: Global scope definitions
+#include <HardwareSerial.h>
+HardwareSerial MySerial(2);
+volatile bool event_trigger_flag = false; // The same bridge pattern
 
+// PART 3: In SystemA_GetInputSignals() (synchronous context)
+// The polling happens inside this helper function
+waitMessageUart(); 
+
+if (event_trigger_flag == true) {
+    events->toggleLED = 1;
+    event_trigger_flag = false; // Reset the flag
+}
+
+// PART 4: Helper function for polling (asynchronous context)
 void waitMessageUart() {
-    String receivedMessage = receiveDataUart();
-    if (receivedMessage.length() > 0 &&
-     receivedMessage == message_uart_toggleLED) {
-        toggleLED_trigger_flag = true;
+    if (MySerial.available() > 0) { // Actively polling the buffer
+        String receivedMessage = MySerial.readStringUntil('\n');
+        if (receivedMessage == "trigger_toggleLED") {
+            event_trigger_flag = true; // Set flag if message matches
+        }
     }
 }
 \end{verbatim}
 
-% -------------------------------------------------------------------
-% Subsection 3.4.3: TCP/MQTT Protocol
-% -------------------------------------------------------------------
+Despite the different detection mechanism (polling vs. ISR), the code employs the exact same \texttt{volatile} flag pattern to safely bridge the asynchronous nature of serial data arrival with the synchronous \texttt{GetInputSignals()} function call.
+
 \subsection{TCP/MQTT-Based Communication Channel}
-\label{subsec:tcp_analysis}
-For networked systems, the tool generates code utilizing the MQTT protocol over TCP/IP. This enables a robust publish-subscribe communication model managed by a central broker.
+For networked systems, the tool generates code using the MQTT protocol, which enables a robust publish-subscribe model. This approach is inherently asynchronous and event-driven.
 
-\paragraph{Sample API Call.}
+\noindent\textbf{Sample API Call:}
 \begin{verbatim}
-?protocol=tcp&projectName=SensorNetwork&eventName=alert&
-topic=sensors/events
+?protocol=tcp&projectName=SensorNetwork&eventName=alert&topic=sensors/events
 \end{verbatim}
 
-The complete listing of the generated code for this TCP/MQTT example is available in \textbf{Appendix \ref{appendix:tcp}}.
-
-The code leverages the \texttt{PubSubClient.h} library to manage the MQTT connection [cite: 653]. The logic is centered around a \texttt{callback} function, which is triggered by the library upon receiving a message on a subscribed topic [cite: 677-678, 682]. Inside the callback, the message payload is compared to an expected event string. A match sets a \texttt{volatile} flag for the synchronous \texttt{SensorNetwork\_GetInputSignals()} function. The code also includes a \texttt{reconnect} function to automatically re-establish the connection to the broker if it is lost, enhancing the system's resilience.The event-driven nature of the MQTT subscriber is centered on the callback function, as shown in this snippet:
+The implementation, shown in Listing~\ref{lst:mqtt_receiver}, leverages the \texttt{PubSubClient} library, which uses a **callback function** (\texttt{callback}) that is automatically executed when a message arrives on a subscribed topic. This is conceptually similar to an ISR but operates at a higher software level. The same asynchronous-to-synchronous bridge pattern is used to signal the event to the main loop.
 
 \begin{verbatim}
-// Snippet from MQTT Receiver Code
+// PART 1: Global scope definitions
+#include <WiFi.h>
+#include <PubSubClient.h>
+volatile bool event_trigger_flag = false; // The bridge pattern again
 
+// PART 2: In SensorNetwork_InitializeIO()
+client.setCallback(callback); // Register the callback function
+
+// PART 3: In SensorNetwork_GetInputSignals()
+if (event_trigger_flag == true) {
+    events->alert = 1;
+    event_trigger_flag = false; // Reset the flag
+}
+
+// PART 5: Callback function (asynchronous context)
 void callback(char* topic, byte* payload, unsigned int length) {
-    String msg = "";
-    for (int i=0; i<length; i++) msg += (char)payload[i];
-    
-    if (msg == String(message_tcp_alert)) {
-        alert_trigger_flag = true;
+    // Code to convert payload to String...
+    if (msg == "trigger_alert") {
+        event_trigger_flag = true; // Set flag inside callback
     }
 }
+
+// In main loop, client.loop() must be called to check for messages
+// This call triggers the callback if a message is pending.
 \end{verbatim}
 
-
+A key feature of the generated MQTT code is its focus on **resilience**. Distributed systems must be able to handle network disruptions. The generated code includes a \texttt{reconnect()} function (not shown in the listing for brevity) that automatically attempts to re-establish the connection to the Wi-Fi network and the MQTT broker if it is lost. This ensures that the controller can recover from transient network failures, making the overall system more robust.
 
 % ===================================================================
-% Section 3.5: 
+% Section 3.6: 
 % ===================================================================
+
 \section{Tool Validation}
-\label{sec:validation}
+\label{sec:tool_validation}
 
-Following the implementation of the code generation tool, a two-stage validation process was conducted to verify its reliability and functional correctness of its output. The first stage focused on testing the API's behavior, while the second stage involved empirically validating the generated C++ code on target hardware.
+  Following the implementation of the code generation tool, a two-stage validation process was conducted to verify its reliability and functional correctness of its output. The first stage focused on testing the API's behavior and robustness against a range of inputs, while the second stage involved empirically validating the generated C++ code on target hardware.
 
-% -------------------------------------------------------------------
-% Subsection 3.5.1: API Functionality Testing
-% -------------------------------------------------------------------
 \subsection{API Functionality Testing}
 \label{subsec:api_testing}
 
-The API endpoint was systematically tested to ensure its robustness and adherence to the specification described in Section 3.3. The testing methodology involved subjecting the API to a series of HTTP GET requests with valid and invalid parameter sets.
+  The API endpoint was systematically tested to ensure its robustness and adherence to the specification described in Section \ref{sec:api_spec}. The methodology involved subjecting the API to a series of HTTP GET requests with both valid (positive testing) and invalid (negative testing) parameter sets to verify correct behavior and error handling. A representative sample of these test cases is detailed in Table~\ref{tab:api_test_cases}.
 
-The API was tested with a range of valid parameter combinations for the three supported protocols (I²C, UART, and TCP/MQTT). These tests confirmed that the tool consistently produced syntactically correct C++ code that matched the expected output for the given inputs.
+\begin{table}[h!]
+\centering
+\caption{Representative API Test Cases and Results}
+\label{tab:api_test_cases}
+\begin{tabular}{|l|p{2.5cm}|p{6cm}|p{3.5cm}|}
+\hline
+\textbf{Test Type} & \textbf{Description} & \textbf{Sample Input (URL Fragment)} & \textbf{Expected Outcome} \\ \hline
+\textbf{Positive} & Valid I2C request with all mandatory parameters. & \texttt{?protocol=i2c\&projectName=Demo \&eventName=e1\&slaveAddress=8 \&slaveMessage=A} & HTTP 200 OK with syntactically correct C++ code. \\ \hline
+\textbf{Positive} & Valid UART request using default and custom parameters. & \texttt{?protocol=uart\&projectName=Demo \&eventName=e2\&baudRate=9600} & HTTP 200 OK with syntactically correct C++ code. \\ \hline
+\textbf{Positive} & Valid TCP/MQTT request with a specific topic. & \texttt{?protocol=tcp\&projectName=Demo \&eventName=e3\&topic=dev/test} & HTTP 200 OK with syntactically correct C++ code. \\ \hline
+\textbf{Negative} & Missing a mandatory parameter (\texttt{topic} for TCP). & \texttt{?protocol=tcp\&projectName=Demo \&eventName=e3} & HTTP 400 Bad Request with a descriptive error message. \\ \hline
+\textbf{Negative} & Parameter value outside the valid range (\texttt{slaveAddress} > 119). & \texttt{?protocol=i2c\&projectName=Demo \&eventName=e1\&slaveAddress=150} & HTTP 400 Bad Request with a descriptive error message. \\ \hline
+\textbf{Negative} & Unsupported protocol name. & \texttt{?protocol=can\&projectName=Demo \&eventName=e4} & HTTP 400 Bad Request with a descriptive error message. \\ \hline
+\end{tabular}
+\end{table}
 
-To verify the error handling capabilities of the tool, a series of negative tests were performed. These included:
-\begin{itemize}
-    \item Submitting requests with missing mandatory parameters (for example, omitting the \texttt{topic} for the TCP protocol).
-    \item Providing values outside the specified valid range (for example, an I2C \texttt{slaveAddress} of 150).
-    \item Using an unsupported protocol name in the \texttt{protocol} parameter.
-\end{itemize}
-In all such cases, the API correctly identified the input as invalid and returned the expected \texttt{HTTP 400} status code along with a descriptive error message, as designed. This confirmed the robustness of the input validation and error handling logic.
+  The tests confirmed that the tool consistently produced syntactically correct C++ code for all valid parameter combinations.   In all negative test cases, the API correctly identified the input as invalid and returned the expected HTTP 400 status code, confirming the robustness of the input validation and error handling logic.
 
-% -------------------------------------------------------------------
-% Subsection 3.5.2: Generated Code Validation
-% -------------------------------------------------------------------
 \subsection{Generated Code Validation}
 \label{subsec:code_validation}
 
-The second stage of validation focused on confirming that the code generated by the tool was not only syntactically correct, but also functionally operational. For this purpose, a physical testbed consisting of two ESP32 micro-controller development boards was established for this purpose.
+  The second stage of validation focused on confirming that the code generated by the tool was not only syntactically correct but also functionally operational in a real-world scenario.
 
-For each of the three protocols, the following procedure was executed:
-\begin{enumerate}
-    \item A sample API call was made to generate the code for both the sending (Master/Publisher) and receiving (Slave/Subscriber) controllers.
-    \item The respective generated C++ code was integrated into a minimal Arduino project, compiled, and uploaded to the two ESP32 boards.
-    \item The boards were connected according to the requirements of the protocol being tested (for example, via I2C bus lines, cross-wired UART pins, or connected to the same Wi-Fi network for MQTT).
-    \item The sending device was triggered to activate the Petri net output event, and the receiving device's serial monitor was observed for confirmation of message reception.
-\end{enumerate}
+\subsubsection{Testbed Environment}
+  A physical testbed consisting of two ESP32-WROOM-32 microcontroller development boards was established. The development environment was the Arduino IDE, utilizing standard libraries such as \texttt{Wire.h} for I2C, \texttt{HardwareSerial.h} for UART, and \texttt{PubSubClient.h} for MQTT. For network tests, the boards connected via Wi-Fi to a local network, which had access to a public MQTT broker (HiveMQ). Communication was monitored via the Arduino IDE's serial monitor.
 
-The empirical tests were successful for all three communication protocols. In each test case, the receiving device correctly registered the event triggered by the sending device. This validation process confirmed that the API generates functionally correct, reliable, and deployable communication modules that successfully implement the behavior specified in the IOPT model.
+\subsubsection{Validation Procedure and Results}
+For each of the three protocols, a pair of sender (Master/Publisher) and receiver (Slave/Subscriber) applications was generated using the API.   The code was integrated into a minimal Arduino project, compiled, and uploaded to the two ESP32 boards.   The boards were connected according to the protocol requirements.   The sending device was then triggered to simulate a Petri net output event, and the receiving device's serial monitor was observed for confirmation of message reception. The results of these empirical tests are summarized in Table~\ref{tab:code_validation_results}.
+
+\begin{table}[h!]
+\centering
+\caption{Summary of Generated Code Validation Tests}
+\label{tab:code_validation_results}
+\begin{tabular}{|l|p{4cm}|p{4cm}|p{2cm}|}
+\hline
+\textbf{Protocol} & \textbf{Test Scenario (Sender Action)} & \textbf{Expected Receiver Behavior} & \textbf{Result} \\ \hline
+\textbf{I2C} & The master controller sends a specific command byte to the slave's address. & The slave's I2C \texttt{onReceive} ISR is triggered, correctly identifies the command, and sets the corresponding \texttt{volatile} flag. A confirmation message is printed to the serial monitor. & Pass \\ \hline
+\textbf{UART} & The sending controller transmits a predefined string message over the serial TX line. & The receiving controller, polling its RX line, reads the complete string, validates its content, and sets the corresponding \texttt{volatile} flag. A confirmation message is printed. & Pass \\ \hline
+\textbf{TCP/MQTT} & The publisher client sends a specific message payload to a predefined topic on the MQTT broker. & The subscriber client, connected to the same broker and subscribed to the topic, receives the message via its callback function and sets the corresponding \texttt{volatile} flag. A confirmation message is printed. & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+ The empirical tests were successful for all three communication protocols. A crucial aspect of this validation was to confirm the seamless integration between the generated communication module and the synchronous Petri net execution core. In every test scenario, after a message was received, the event was correctly registered as an input signal by the Petri net's \texttt{GetInputSignals()} function. This new input subsequently enabled the firing of the appropriate transitions within the model, causing the controller to advance its state as specified by the IOPT logic. This successfully demonstrates that the generated modules provide not only a reliable communication channel but also a functionally correct interface that bridges the asynchronous external world with the deterministic execution of the Petri net.
 
 
