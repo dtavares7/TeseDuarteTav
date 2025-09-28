@@ -20,17 +20,15 @@
 
 \section{Introduction}
 \label{sec:case_study_intro}
-isto pa \cite{tavaresgomes2026}
 
+Having detailed the design and implementation of the automated code generation tool in Chapter \ref{cha:chap_3}, this chapter now seeks to validate its practical utility and analyze its output in a real-world scenario. Although the previous chapter verified the tool's functionality, this chapter demonstrates its application within the intended model-driven development workflow, from a high-level system specification to a deployed multi-controller system.
 
-Having detailed the design and implementation of the automated code generation tool in Chapter \ref{cha:chap_3}, this chapter now seeks to validate its practical utility and analyze its output in a real-world scenario. Although the previous chapter verified the tool's functionality, this chapter demonstrates its application within the intended model-driven development workflow, from a high-level system specification to a deployed multi-controller system [cite: 1, 2, 3].
-
-To achieve this, a case study is presented centered on a distributed controller for a three-conveyor automation system [cite: 3]. This application was chosen because it represents a common class of problems in industrial automation, involving multiple coordinated subsystems. The implementation of this case study serves two primary objectives, directly adapted from the research goals presented in [cite: 3]:
+To achieve this, a case study is presented centered on a distributed controller for a three-conveyor automation system. This application was chosen because it represents a common class of problems in industrial automation, involving multiple coordinated subsystems. The implementation of this case study serves two primary objectives, directly adapted from the research goals presented in \cite{tavaresgomes2026}:
 
 \begin{enumerate}
-    \item \textbf{To validate the end-to-end development workflow:} This involves demonstrating how the IOPT-Tools framework and the newly developed API are jointly employed to support low-code development of a distributed system. The process begins with a global IOPT model, proceeds through model decomposition, and culminates in the automatic generation and integration of both the controller logic and heterogeneous communication modules [cite: 3].
+    \item \textbf{To validate the end-to-end development workflow:} This involves demonstrating how the IOPT-Tools framework and the newly developed API are jointly employed to support low-code development of a distributed system. The process begins with a global IOPT model, proceeds through model decomposition, and culminates in the automatic generation and integration of both the controller logic and heterogeneous communication modules.
     
-    \item \textbf{To conduct a quantitative performance analysis:} By implementing intercontroller communication using three distinct protocols, I2C, UART, and TCP/MQTT. This chapter provides an empirical comparison of their respective resource overheads. ]The analysis focuses specifically on the memory footprint, offering valuable insight into the trade-offs associated with each protocol in a resource-constrained embedded environment [cite: 3].
+    \item \textbf{To conduct a quantitative performance analysis:} By implementing intercontroller communication using three distinct protocols, I2C, UART, and TCP/MQTT. This chapter provides an empirical comparison of their respective resource overheads. ]The analysis focuses specifically on the memory footprint, offering valuable insight into the trade-offs associated with each protocol in a resource-constrained embedded environment.
 \end{enumerate}
 
 This chapter begins by describing the conveyor system use case and its corresponding IOPT model. Then it details the implementation process, showing how the automated tool was used to generate the necessary communication code. Subsequently, the results of the performance analysis are presented and discussed. The chapter concludes with a summary of the key findings of the case study.
@@ -75,7 +73,7 @@ For deployment onto a set of distributed hardware controllers, the global model 
 % ===================================================================
 % Section 4.3: Implementation via Automated Code Generation
 % ===================================================================
-\section{Implementation via Automated Code Generation}
+\section{Implementation and Functional Validation}
 \label{sec:use_case_implementation}
 
 With the global IOPT model decomposed into a set of concurrent sub-models (as shown in Figure \ref{fig:decomposed_model}), the next step in the development workflow is to implement the abstract communication channels between them. This task was accomplished using the automated code generation API detailed in Chapter 3.
@@ -206,19 +204,16 @@ The successful validation of all three communication modules confirms the tool's
 
 For each controller, the baseline logic code was first generated using the standard IOPT-Tools generator, creating a \texttt{net\_io.c} file. \textbf{As a mandatory first step, this file was renamed to \texttt{net\_io.cpp} to enable C++ compilation, a requirement for the libraries used by the generated communication modules.} Subsequently, the specific communication modules produced by the API calls were inserted directly into this renamed \texttt{net\_io.cpp} file, completing the hardware-specific implementation. The entire process of specifying, generating, and integrating the code for all three heterogeneous communication links was completed in a fraction of the time required for manual implementation]. This successfully demonstrates the tool's primary objective: to accelerate the development of distributed control systems and reduce the potential for implementation errors by automating the creation of communication infrastructure.
 
+% ===================================================================% % ===================================================================% % ===================================================================% % ===================================================================% % ===================================================================% % ===================================================================% 
+% CAPÍTULO 4: VALIDAÇÃO EXPERIMENTAL E ANÁLISE DE DESEMPENHO
 % ===================================================================
-% Section 4.4: Performance Analysis and Results
-% ===================================================================
-\section{Performance Analysis and Results}
-\label{sec:performance_analysis}
+\section{Experimental Setup and Methodology}
+\label{sec:setup_and_methodology}
 
-After successfully implementing the distributed controller for the conveyor system, a performance analysis was performed to quantify the resource overhead associated with the different communication protocols generated by the tool. Although multiple performance metrics such as latency and CPU usage could be considered, this analysis focuses on the **memory footprint**, as it is often the most critical constraint in embedded systems development.
+After successfully implementing the distributed controller for the conveyor system, a comprehensive experimental analysis was performed. This evaluation aims to both quantify the performance overhead and validate the functional correctness of the tool's generated code. Specifically, this analysis focuses on three critical aspects: the \textbf{memory footprint}, as a key constraint in embedded hardware; the \textbf{communication latency}, which directly impacts system responsiveness; and the \textbf{dynamic behavior}, to ensure the deployed code correctly implements the formal model's semantics.
 
-% ===================================================================
-% Nova Subsecção para o Setup Experimental no Capítulo 4
-% ===================================================================
 
-\subsection{Experimental Setup and Hardware Testbed}
+\subsection{Hardware Testbed}
 \label{subsec:hardware_setup}
 
 To empirically validate the generated code and conduct the performance analysis, a physical hardware testbed was constructed, representing the distributed controller architecture shown in Figure \ref{fig:deployment_layout}. 
@@ -233,11 +228,20 @@ The testbed, photographed in Figure \ref{fig:hardware_photo}, consists of four E
     \label{fig:hardware_photo}
 \end{figure}
 
+
 % ===================================================================
-% Nova Subsecção Methodology
+% Subsecção unificada para toda a metodologia de análise
 % ===================================================================
-\subsection{Methodology}
+\subsection{Analysis Methodology}
 \label{subsec:analysis_methodology}
+
+To evaluate the system's performance and functional correctness, three distinct analyses were conducted. The methodology for each is detailed below.
+
+% -------------------------------------------------------------------
+% Subsubsection para a Metodologia de Medição de Memória
+% -------------------------------------------------------------------
+\subsubsection{Memory Footprint Measurement}
+\label{subsubsec:memory_methodology}
 
 The memory footprint of each of the four controller modules (Entrance, Two, Three and Exit) was measured to determine the overhead of its communication stack. The process was as follows.
 \begin{enumerate}
@@ -246,55 +250,116 @@ The memory footprint of each of the four controller modules (Entrance, Two, Thre
     \item \textbf{Overhead Calculation:} The communication overhead was calculated as the difference in memory footprint between the baseline measurement and the measurement with the integrated communication code.
 \end{enumerate}
 
-\subsection{Results}
-\label{subsec:analysis_results}
+% -------------------------------------------------------------------
+% Subsubsection para a Metodologia de Medição de Latência
+% -------------------------------------------------------------------
+\subsubsection{Communication Latency Measurement}
+\label{subsubsec:latency_methodology}
 
-The results of the memory footprint analysis are summarized in Table \ref{tab:memory_footprint}. The data reveals a significant variation in overhead that is strongly correlated with the complexity of the communication protocols implemented on each controller module.
+The latency for each protocol was measured empirically on the hardware testbed. The primary tool for this measurement was the ESP32's high-resolution \texttt{micros()} function, which provides microsecond-level timing accuracy. The output values were observed using the Arduino IDE's \textbf{Serial Monitor}, connected to the receiving controller via USB.
 
-\begin{table}[htb]
-\centering
-\small % Reduce the font size for the table
-\caption{Memory Analysis of Controller Implementations, adapted from \cite{tavaresgomes2026}.}
-\label{tab:memory_footprint}
-\sisetup{group-separator={,}}
-% Using abbreviated headers to save space
-\begin{tabular}{l S[table-format=6.0] S[table-format=6.0] S[table-format=5.0] S[table-format=1.2]}
-\toprule
-\textbf{Controller ESP} & {\textbf{Baseline}} & {\textbf{W/ Comm.}} & {\textbf{Overhead}} & {\textbf{Overhead}} \\
-& {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(\%)}} \\
-\midrule
-Entrance & 927970 & 954178 & 26208 & 2.82 \\
-Two & 928578 & 955894 & 27316 & 2.94 \\
-Three & 928642 & 957014 & 28372 & 3.06 \\
-Exit & 927058 & 928478 & 1420  & 0.15 \\
-\bottomrule
-\end{tabular}
-\end{table}
+The specific procedure varied for each protocol to best capture its characteristics:
+\begin{itemize}
+    \item \textbf{I\textsuperscript{2}C and UART:} To measure the direct one-way transfer time, the sending controller recorded a start timestamp, \texttt{t\_start = micros()}, and embedded this value within the message payload itself. Upon reception, the receiving controller immediately recorded an end timestamp, \texttt{t\_end = micros()}. The latency was then calculated as \texttt{latency = t\_end - t\_start} and printed to the Serial Monitor.
 
-\subsection{Discussion of Results}
-\label{subsec:analysis_discussion}
-
-The data presented in Table \ref{tab:memory_footprint} clearly illustrate the critical trade-off between functional flexibility and resource consumption when selecting a communication protocol.
-
-The \textbf{Entrance Controller} and \textbf{Controller Two}, both of which implement a full TCP/IP stack for MQTT messaging along with I2C, exhibit the most substantial overheads at approximately 26.2 and 27.3 kB, respectively. This confirms that network-level protocols are the main contributors to the memory footprint. The complexity of the TCP/IP stack, which requires significant buffer space and state management for reliable communication, combined with the MQTT client library, accounts for the vast majority of this resource cost.
-
-This is further corroborated by the data from the \textbf{Exit Controller}. This module, which implements \textit{only} the UART protocol for simple point-to-point asynchronous communication, shows a remarkably low overhead of just 1,420 bytes (a mere 0.15\% increase). This stark contrast highlights the lightweight nature of hardware-level serial protocols compared to their network-level counterparts, as the former can be implemented with minimal software abstraction.
-
-These findings have significant implications for the design of distributed embedded systems. The model-driven development approach, augmented by the tool presented in this thesis, allows a designer to make informed decisions during the system partitioning phase. By analyzing the communication requirements of each sub-model, complex and memory-intensive protocols like TCP/MQTT can be selectively deployed only on controllers that require network connectivity. Simpler nodes can be implemented with lightweight protocols like UART or I2C, thus optimizing the overall system's resource usage and ensuring that hardware constraints are met.
+    \item \textbf{TCP/MQTT:} Due to the indeterminate path through a public broker, a round-trip time (RTT) was measured to provide a stable metric. A "ping-pong" test was configured where the first controller published a message and recorded \texttt{t\_start}. The second controller was programmed to immediately publish a reply upon receiving the message. The first controller recorded \texttt{t\_end} upon receiving the reply. The one-way latency was then estimated as \texttt{RTT / 2}.
+\end{itemize}
+For each protocol, the test was executed \textbf{20 times} to account for minor variations, and the average of these measurements was taken as the final, representative result.
 
 
+% ===================================================================
+% ===================================================================
+% Secção para os Resultados e Discussão
+% ===================================================================
+\section{Results and Discussion}
+\label{sec:results_and_discussion}
 
-\subsection{Dynamic Behavior Validation}
-\label{subsec:dynamic_validation}
+The methodologies described in the previous section were applied to the hardware testbed, yielding quantitative results regarding performance and functional correctness. These results are presented and analyzed below.
 
-Beyond the static analysis of memory consumption, a validation of the system's dynamic behavior was also performed. The integrated simulator within IOPT-Tools was used to capture a timing diagram of \textit{Controller Two}'s execution, enabling a detailed analysis of its operational logic over time.
+% ===================================================================
+% Subsecção para os Resultados de Desempenho (Memória e Latência)
+% ===================================================================
+\subsection{Performance Analysis}
+\label{subsec:performance_results}
+ 
+    % -------------------------------------------------------------------
+    % Subsubsection para os Resultados de Memória
+    % -------------------------------------------------------------------
+    \subsubsection{Memory Footprint Overhead}
+    \label{subsubsec:memory_results}
 
-Figure \ref{fig:timing_diagram_controller2} presents this timing diagram. The diagram illustrates the direct correlation between the internal state of the Petri net (the markings of places, such as \texttt{p\_11/ppb}) and the controller's actions in the physical world (the activation of the \texttt{movei\_2} signal). It is possible to observe, for example, how the arrival of an external communication event (e.g., \texttt{event37\_td\_1}) initiates a sequence of transition firings that alter the net's marking and ultimately result in the activation of a physical output.
+    The results of the memory footprint analysis are summarized in Table \ref{tab:memory_footprint}. The data reveals a significant variation in overhead that is strongly correlated with the complexity of the communication protocols implemented on each controller module.
 
-This analysis confirms that the C++ code, automatically generated and deployed on the hardware, faithfully preserves the precise operational semantics specified in the original IOPT model.
+    \begin{table}[htb]
+    \centering
+    \small % Reduce the font size for the table
+    \caption{Memory Analysis of Controller Implementations, adapted from \cite{tavaresgomes2026}.}
+    \label{tab:memory_footprint}
+    \sisetup{group-separator={,}}
+    % Using abbreviated headers to save space
+    \begin{tabular}{l S[table-format=6.0] S[table-format=6.0] S[table-format=5.0] S[table-format=1.2]}
+    \toprule
+    \textbf{Controller ESP} & {\textbf{Baseline}} & {\textbf{W/ Comm.}} & {\textbf{Overhead}} & {\textbf{Overhead}} \\
+    & {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(Bytes)}} & {\textbf{(\%)}} \\
+    \midrule
+    Entrance & 927970 & 954178 & 26208 & 2.82 \\
+    Two & 928578 & 955894 & 27316 & 2.94 \\
+    Three & 928642 & 957014 & 28372 & 3.06 \\
+    Exit & 927058 & 928478 & 1420  & 0.15 \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+    % -------------------------------------------------------------------
+    % Subsubsection para os Resultados de Latência
+    % -------------------------------------------------------------------
+    \subsubsection{Communication Latency}
+    \label{subsubsec:latency_results}
+    
+    The application of the latency measurement methodology yielded the average latency values presented in Table \ref{tab:latency_results}. These results, visualized in Figure \ref{fig:latency_chart}, highlight the orders-of-magnitude differences in temporal performance between the protocols.
+
+    \begin{table}[htb]
+    \centering
+    \caption{Average Communication Latency Measurements.}
+    \label{tab:latency_results}
+    \begin{tabular}{l l l}
+    \toprule
+    \textbf{Protocol} & \textbf{Average Latency} & \textbf{Notes} \\
+    \midrule
+    I\textsuperscript{2}C (at 400kHz) & \SI{185}{\micro\second} & One-way, master-to-slave transfer. \\
+    UART (at 115200 bps) & \SI{250}{\micro\second} & One-way, point-to-point transfer. \\
+    TCP/MQTT & \SI{45}{\milli\second} & Estimated one-way latency via public broker. \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+    \begin{figure}[htb!]
+        \centering
+        \includegraphics[width=0.9\columnwidth]{Chapters/Figures/averageLant.png}
+        \caption{Comparison of average communication latency across protocols. Note the logarithmic scale on the y-axis is required to visualize the vast difference in performance.}
+        \label{fig:latency_chart}
+    \end{figure}
+
+
+% ===================================================================
+% Subsecção para a Discussão Final e Análise de Trade-offs
+% ===================================================================
+\subsection{Discussion and Trade-off Analysis}
+\label{subsec:discussion}
+
+The performance data, encompassing both memory footprint (Table \ref{tab:memory_footprint}) and latency (Table \ref{tab:latency_results}), provides a clear and quantitative basis for analyzing the engineering trade-offs associated with each communication protocol.
+
+The analysis confirms that hardware-level protocols are exceptionally efficient. The \textbf{Exit Controller}, using only UART, shows a negligible memory overhead of just 1.4 kB and a measured latency of \SI{250}{\micro\second}. This extremely low latency is a direct result of the hardware-based, point-to-point nature of the protocol. A similar high performance is seen with I\textsuperscript{2}C, which benefits from a synchronous, hardware-managed bus.
+
+Conversely, the controllers implementing MQTT exhibit a substantial memory overhead of over 26 kB and a significantly higher latency measured at \SI{45}{\milli\second}—over 180 times slower than UART. This result is expected and is attributable to the multiple layers of abstraction and physical infrastructure involved: the TCP/IP and Wi-Fi stack, wireless transmission, and the round-trip delay to the public MQTT broker.
+
+These results underscore a fundamental design trade-off: \textbf{resource efficiency versus functional flexibility}. While I\textsuperscript{2}C and UART are highly efficient, they are limited to local, physically-wired communication. MQTT, despite its resource-intensiveness, offers unparalleled flexibility, enabling communication over vast distances, easy integration with cloud services, and a scalable publish-subscribe architecture.
+
+The model-driven approach, augmented by the tool presented in this thesis, empowers a designer to manage these trade-offs intelligently. By partitioning a system and analyzing the specific requirements of each inter-controller link, a designer can make informed, data-driven decisions. High-speed, critical control loops can be implemented with low-latency protocols like I\textsuperscript{2}C, while non-critical status updates or remote monitoring can leverage the flexibility of MQTT, all within the same distributed system. This allows for an optimized heterogeneous architecture that meets both functional requirements and hardware constraints.
 
 
 
+% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================% ===================================================================
 
 % ===================================================================
 % Section 4.5: Chapter Summary
@@ -302,6 +367,6 @@ This analysis confirms that the C++ code, automatically generated and deployed o
 \section{Chapter Summary}
 \label{sec:case_study_summary}
 
-This chapter successfully demonstrated the practical application and value of the automated code generation tool through a detailed case study of a three-conveyor distributed control system. The work presented herein validated the entire model-driven development workflow, beginning with a high-level IOPT Petri net model and culminating in a functional, multi-controller hardware implementation. The tool was shown to seamlessly integrate into this workflow, allowing the rapid and reliable implementation of a complex and heterogeneous communication architecture that involves the I2C, UART and TCP / MQTT protocols.
+This chapter successfully demonstrated the practical application and value of the automated code generation tool through a detailed case study of a three-conveyor distributed control system. The work presented here validated the entire model-driven development workflow, beginning with a high-level IOPT Petri net model and culminating in a functional, multi-controller hardware implementation . The tool was shown to seamlessly integrate into this workflow, allowing the rapid and reliable implementation of a complex and heterogeneous communication architecture that involves I2C, UART, and TCP/MQTT protocols.
 
-Furthermore, the performance analysis provided critical, quantitative insights into the resource consumption of these protocols. The results empirically confirmed the significant memory overhead of network-level protocols like TCP/MQTT when compared to the lightweight nature of hardware-level protocols such as UART. Ultimately, this case study validates the central proposition of this thesis: that automated generation of communication modules not only accelerates development, but also empowers designers to make informed, data-driven decisions when balancing functional requirements against the hardware constraints of embedded systems.
+Furthermore, the performance analysis provided critical quantitative insight into the resource consumption and temporal characteristics of these protocols. The results empirically confirmed the significant trade-offs in \textbf{memory overhead and communication latency} between network-level protocols like TCP/MQTT and the lightweight, high-speed nature of hardware-level protocols such as UART and I²C . Ultimately, this case study validates the central proposition of this thesis: that automated generation of communication modules not only accelerates development, but also empowers designers to make informed, data-driven decisions when balancing functional requirements against the hardware constraints of embedded systems.
