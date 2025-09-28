@@ -35,12 +35,12 @@ In subsequent decades, the theoretical foundations of Petri nets were strengthen
 \label{subsec:definition}
 
 
-Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets, Input-Output Place-Transition(IOPT) among others were introduced to better meet these needs. 
+Petri nets, over the years, have been developed and adapted to better suit different applications,  Colored Petri Nets (CPNs), Timed Petri Nets, Hierarchical Petri Nets, Input-Output Place-Transition (IOPT), among others were introduced to better meet these needs. 
 
 
 To manage this diversity, the term \textbf{Place/Transition net (P/T net)} was established as the standard name for the classical formalism, a standardization heavily influenced by seminal works such as Murata's~\cite{murata}. This P/T net serves as the foundational model from which the advanced types mentioned above are derived from. Essentially, every advanced Petri net is an extension of the classical P/T net, inheriting its fundamental concepts of places, transitions, and firing rules. A firm grasp of the P/T net definition is therefore a prerequisite for understanding its more complex variants.
 
-Place/Transition nets are a bipartite directed‐graph formalism comprising of primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
+Place/Transition nets are a bipartite directed‐graph formalism comprising primitive elements, \emph{places} (depicted as circles), \emph{transitions} (depicted as bars) and \emph{Arcs} (depicted as arrows), and \emph{tokens} that reside in places to represent system state (see Figure~\ref{fig:petri_diagrama}). The minimality of these primitives enables the construction of richer constructs (e.g., forks, joins) while preserving analytical tractability~\cite{50-years}. Semantically, places model local conditions or resources and transitions denote events whose firing consumes and produces tokens, thereby capturing concurrency, synchronization, conflict and choice within a unified mathematical framework~\cite{50-years}. 
 
 Graphically, P/T nets serve as intuitive visual‐communication aids for stakeholders, such as clients, manufacturers and users, supporting model comprehension and system specification~\cite{pn-Wolfgang}.
 
@@ -236,7 +236,7 @@ In this section, various communication technologies utilised within Globally Asy
 \subsection{I\textsuperscript{2}C}
 \label{subsub:i2c}
 
-The I\textsuperscript{2}C  (Inter-Integrated Circuit) protocol is described as a multi-master, serial and single-ended bus that requires only two lines for communication: the clock line (SCL) for synchronization and the data line (SDA) for transmitting information. This simplicity is underscored by the minimal hardware requirements, just three connections (SCL, SDA, and GND), making it an ideal choice for connecting the central controller (master) with multiple local controllers (slaves) \cite{i2c}.
+The I\textsuperscript{2}C  (Inter-Integrated Circuit) protocol is described as a multi-master, serial, and single-ended bus that requires only two lines for communication: the clock line (SCL) for synchronization and the data line (SDA) for transmitting information. This simplicity is underscored by the minimal hardware requirements, just three connections (SCL, SDA, and GND), making it an ideal choice for connecting the central controller (master) with multiple local controllers (slaves) \cite{i2c}.
 
 Despite its advantages, the I\textsuperscript{2}C  protocol presents certain limitations that may hinder its suitability for high-performance or large-scale applications. The standard I\textsuperscript{2}C bus supports data rates of up to 3.4 Mbps in high-speed mode, which may prove inadequate for systems that demand greater throughput. Moreover, the inherent bus capacitance imposes constraints on the number of connected devices, the permissible bus length and may have problems with bus contention, thereby limiting the scalability of the system ~\cite{I2Cv2}.
 

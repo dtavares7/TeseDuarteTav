@@ -28,9 +28,9 @@ The concept of Petri nets was first introduced by Carl Adam Petri in his 1962 di
 
 Petri nets provide a robust and intuitive framework for the modeling and analysis of complex systems. Their graphical representation facilitates the visualization of concurrent, asynchronous, and distributed processes, while their underlying mathematical formalism enables rigorous validation and verification. Due to their versatility and expressive power, Petri nets have proven to be a valuable tool for both theoretical research and practical engineering applications~\cite{murata}.
 
-Among the numerous tools available for Petri net modeling, the IOPT-Tools environment underpins a specialized approach to developing controllers through an IOPT models, a specific class of Petri nets. The IOPT-Tools framework, accessible at \url{http://gres.uninova.pt/IOPTTools/}, provides mechanisms for decomposing complex models into independent sub-models, allowing them to execute across distinct computational nodes.
+Among the numerous tools available for Petri net modeling, the IOPT-Tools environment underpins a specialized approach to developing controllers through IOPT models, a specific class of Petri nets. The IOPT-Tools framework, accessible at \url{http://gres.uninova.pt/IOPTTools/}, provides mechanisms for decomposing complex models into independent sub-models, allowing them to execute across distinct computational nodes.
 
-The increasing complexity of distributed control system models, particularly under the GALS (Globally Asynchronous, Locally Synchronous) paradigm, has intensified the need for efficient and dependable communication between these distributed sub-models. As systems become more modular and geographically distributed, guaranteeing low-latency data exchange and maintaining operational consistency pose significant challenges. These challenges are particularly acute in the context of distributed IOPT sub-models and GALS, as manual communication handling can lead to extensive development effort, introduce potential for errors, and complicate the formal verification of system behavior.
+The increasing complexity of distributed control system models, particularly under the GALS (Globally Asynchronous, Locally Synchronous) paradigm, has intensified the need for efficient and dependable communication between these distributed sub-models. As systems become more modular and geographically distributed, guaranteeing low-latency data exchange and maintaining operational consistency pose significant challenges. These challenges are particularly acute in the context of distributed IOPT sub-models and GALS, as manual communication handling can lead to extensive development effort, introduce the potential for errors, and complicate the formal verification of system behavior.
 
 
 \section{Problem Statement}
@@ -45,11 +45,11 @@ At the heart of this work lies the challenge of integrating effective communicat
 This project is organized around two principal objectives:
 
 \begin{itemize}
-    \item Comparative Analysis of Communication Technologies: Conduct a thorough study of both wired point-to-point networks, such as I2C, SPI, and UART and wireless solutions like Wi-Fi and Bluetooth, evaluating them based on criteria such as simplicity, reliability, and latency.
+    \item Comparative Analysis of Communication Technologies: Conduct a thorough study of both wired point-to-point networks, such as I2C, SPI, and UART, and wireless solutions like Wi-Fi and Bluetooth, evaluating them based on criteria such as simplicity, reliability, and latency.
     \item Development of an Automated Code Generation Tool: Design and implement an algorithm or workflow that can automatically generate the code required for each IOPT sub-model. This mechanism should streamline the setup of efficient data exchanges among controllers, ensuring that the overall system remains robust and responsive to the demands of distributed control.
 \end{itemize}
 
-It is expected that the study of these two objectives will yield an automatic code generation tool capable of producing C, depending on the inputs provided. This tool will be implemented within the IOPT-tools, thereby ensuring reliable and effective communication between IOPT submodels.
+It is expected that the study of these two objectives will yield an automatic code generation tool capable of producing C++, depending on the inputs provided. This tool will be implemented within the IOPT-tools, thereby ensuring reliable and effective communication between IOPT submodels.
 The software artifact resulting from this work, an API for automated code generation, has been made publicly available in a source code repository.
 
 
