@@ -26,9 +26,9 @@ This chapter presents the design, implementation, and validation of the proposed
 \section{System Architecture}
 \label{sec:design_decisions}
 
-The tool is implemented as a server-side web Application Programming Interface (API), an architectural choice that decouples the code generation logic from the end-user's local environment while providing a platform-independent and highly accessible solution. At the core of the system lies a single PHP script, \texttt{gals.php}, hosted on a web server, which is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{git-link-ver-depois}}. The overall architectural workflow, depicted in Figure~\ref{fig:api_Workflow}, illustrates the sequence of interactions from the user's request to the delivery of the generated C++ code.
+The tool is implemented as a server-side web Application Programming Interface (API), an architectural choice that decouples the code generation logic from the end-user's local environment while providing a platform-independent and highly accessible solution. At the core of the system lies a single PHP script, \texttt{api.php}, hosted on a web server, which is responsible for processing all incoming requests\footnote{The complete open-source implementation of the API is publicly available in a Git repository at: \url{https://github.com/dtavares7/Api}}. The overall architectural workflow, depicted in Figure~\ref{fig:api_Workflow}, illustrates the sequence of interactions from the user's request to the delivery of the generated C++ code.
 
-The process begins with the user, or an automated client, constructing a Hypertext Transfer Protocol (HTTP) GET request containing a set of URL parameters. These parameters specify the desired communication protocol (\gls{i2c}, UART, or TCP/MQTT) and its configuration, including details such as slave addresses, baud rates, or topic names, as defined in Section~\ref{sec:api_spec}. Upon receiving the request, the web server, which can be implemented using common platforms such as Apache or Nginx, acts as the public-facing entry point and forwards the request to the \texttt{gals.php} script for processing.
+The process begins with the user, or an automated client, constructing a Hypertext Transfer Protocol (HTTP) GET request containing a set of URL parameters. These parameters specify the desired communication protocol (\gls{i2c}, UART, or TCP/MQTT) and its configuration, including details such as slave addresses, baud rates, or topic names, as defined in Section~\ref{sec:api_spec}. Upon receiving the request, the web server, which can be implemented using common platforms such as Apache or Nginx, acts as the public-facing entry point and forwards the request to the \texttt{api.php} script for processing.
 
 Within the PHP script, the input parameters are first parsed and sanitized, then validated against the API specification to ensure completeness and correctness. Based on the selected protocol, the script retrieves the corresponding pre-written C++ code template, which contains placeholders for the protocol-specific configuration values. These templates serve as skeletons for each supported communication protocol, enabling modularity and separation of generation logic from code structure. The script dynamically populates the template with the user-provided parameters and assembles the final C++ source code as a string, ready for integration. In cases of missing or invalid parameters, the script generates an HTTP 400 error response with a descriptive message, ensuring robust error handling.
 
@@ -88,10 +88,11 @@ Through these mappings, the tool establishes a systematic and consistent corresp
 \label{sec:api_spec}
 
 This section provides a formal specification of the Application Programming Interface (API) for the code generation tool. The API is designed to be accessed via HTTP GET requests, with all configuration options passed as URL parameters.
+To complement this formal specification and provide a practical, on-demand reference, a dynamic help page was implemented at the \texttt{help.php} endpoint. This page serves as a live user manual that presents a summary of the base endpoint, the required global parameters, and a detailed breakdown of each protocol. For each protocol, it lists all available parameters, indicates whether they are required or optional, specifies their default values, and provides a complete, ready-to-use example URL. This feature is designed to facilitate the ease of use and rapid testing of the API directly from a web browser.
 
 The base endpoint for the API corresponds to the server location of the main script, as illustrated below:
 \begin{verbatim}
-    http://<server_address>/gals.php
+    http://<server_address>/api.php
 \end{verbatim}
 
 Every API request must include three global parameters that define the context for the code generation. These are detailed in Table \ref{tab:global_params}.
@@ -103,7 +104,7 @@ Every API request must include three global parameters that define the context f
     \begin{tabular}{|l|c|p{9cm}|}
         \hline
         \textbf{Parameter} & \textbf{Status} & \textbf{Description} \\ \hline
-        \texttt{protocol} & Mandatory & Specifies the communication protocol. Must be one of: \texttt{\gls{i2c}}, \texttt{uart}, or \texttt{tcp}. \\ \hline
+        \texttt{protocol} & Mandatory & Specifies the communication protocol. Must be one of: \texttt{i2c}, \texttt{uart}, or \texttt{tcp}. \\ \hline
         \texttt{projectName} & Mandatory & A C-identifier compliant string defining the project name, used for function naming in the generated code. \\ \hline
         \texttt{eventName} & Mandatory & A C-identifier compliant string defining the specific event to be handled. \\ \hline
     \end{tabular}
@@ -141,8 +142,10 @@ In addition to the global parameters, each protocol requires or accepts a unique
         \hline
         \textbf{Parameter} & \textbf{Status} & \textbf{Type} & \textbf{Description / Default Value} \\ \hline
         \texttt{serialPort} & Optional & Integer & The hardware serial port to use on the ESP32 (0, 1, or 2). \textbf{Default: 2}. \\ \hline
-        \texttt{rxPin} & Optional & Integer & The GPIO pin number for receiving data (RX). \textbf{Default: 16}. \\ \hline
-        \texttt{txPin} & Optional & Integer & The GPIO pin number for transmitting data (TX). \textbf{Default: 17}. \\ \hline
+        \texttt{rxPin\_receiver} & Optional & Integer & The RX pin for the device receiving the message. \textbf{Default: 16}. \\ \hline
+        \texttt{txPin\_receiver} & Optional & Integer & The TX pin for the device receiving the message. \textbf{Default: 17}. \\ \hline
+        \texttt{rxPin\_sender} & Optional & Integer & The RX pin for the device sending the message. \textbf{Default: 17}. \\ \hline
+        \texttt{txPin\_sender} & Optional & Integer & The TX pin for the device sending the message. \textbf{Default: 16}. \\ \hline
         \texttt{baudRate} & Optional & Integer & The data transmission rate in bits per second. \textbf{Default: 115200}. \\ \hline
         \texttt{uartMessage} & Optional & String & The message string that triggers the event. \textbf{Default: "trigger\_<eventName>"}. \\ \hline
     \end{tabular}
@@ -185,41 +188,61 @@ The \gls{i2c} protocol is well-suited for communication on a shared bus, followi
 
 \noindent\textbf{Sample API Call (Slave):}
 \begin{verbatim}
-?protocol=\gls{i2c}&projectName=DemoProject&eventName=buttonPress&
+?protocol=i2c&projectName=DemoProject&eventName=buttonPress&
 slaveAddress=9&slaveMessage=P
 \end{verbatim}
 
-The slave controller's code, shown in Listing~\ref{lst:i2c_slave}, relies on an Interrupt Service Routine (ISR) for event detection. This is an efficient, event-driven approach where the microcontroller's hardware immediately executes the \texttt{receive\gls{i2c}Event} function upon data arrival, without requiring the main loop to continuously check for messages.
+The slave controller's code,provided in full in Appendix~\ref{appendix:i2c}, relies on an Interrupt Service Routine (ISR) for event detection. This is an efficient, event-driven approach where the microcontroller's hardware immediately executes the \texttt{receive\gls{i2c}Event} function upon data arrival, without requiring the main loop to continuously check for messages.
 
 \begin{verbatim}
-// PART 1: Global scope definitions
+/*
+* PART 1: Place this at the top of your file with the other global 
+variables and includes.
+*/
 #include <Wire.h>
-#define I2C_SLAVE_ADDRESS 9
-#define CMD_TRIGGER_EVENT 'P'
-volatile bool event_trigger_flag = false; // The volatile flag
+#define I2C_SLAVE_ADDRESS_for_buttonPress 9 // Address for this device
+#define CMD_TRIGGER_buttonPress 'P' // Command to activate the event
+volatile bool buttonPress_trigger_flag = 0;
+void receiveI2CEvent(int byteCount); // Function prototype
 
-// PART 2: In DemoProject_InitializeIO()
-Wire.begin(I2C_SLAVE_ADDRESS);
-Wire.onReceive(receive\gls{i2c}Event); // Register the ISR
 
-// PART 3: In DemoProject_GetInputSignals()
-if (event_trigger_flag == true) {
-    events->buttonPress = 1;
-    event_trigger_flag = false; // Reset the flag after processing
+/*
+* PART 2: Place this inside your 'DemoProject_InitializeIO()' function.
+*/
+// Start the I2C bus as a slave with the defined address
+Wire.begin(I2C_SLAVE_ADDRESS_for_buttonPress);
+// Register the callback function that will be called when receiving data
+Wire.onReceive(receiveI2CEvent);
+
+
+/*
+* PART 3: Place this inside your 'DemoProject_GetInputSignals()' function.
+*/
+if (buttonPress_trigger_flag == 1) {
+events->buttonPress = 1;
+buttonPress_trigger_flag = 0; // Reset the flag to fire only once
+} else {
+events->buttonPress = 0; // Ensure the event is inactive by default
 }
 
-// PART 4: ISR function (asynchronous context)
+
+/*
+* PART 4: Place this at the bottom of your file with the other helper functions.
+*/
 void receiveI2CEvent(int byteCount) {
-    if (Wire.available() > 0) {
-        char command = Wire.read();
-        if (command == CMD_TRIGGER_EVENT) {
-            event_trigger_flag = true; // Set flag inside ISR
-        }
-    }
+if (Wire.available() > 0) {
+char command = Wire.read();
+if (command == CMD_TRIGGER_buttonPress) {
+buttonPress_trigger_flag = 1;
+}
+}
+while (Wire.available() > 0) {
+Wire.read();
+}
 }
 \end{verbatim}
 
-The core of the asynchronous-to-synchronous bridge is the \texttt{volatile bool event\_trigger\_flag}. The \texttt{volatile} keyword is critical: it instructs the compiler not to apply optimizations to this variable, ensuring that every read of the flag in the main loop fetches its true, up-to-date value from memory, which may have been modified at any time by the ISR. This prevents potential race conditions and ensures the event is reliably detected by the synchronous Petri net logic.
+The core of the asynchronous-to-synchronous bridge is the volatile bool buttonPress\_trigger\_flag. The \texttt{volatile} keyword is critical: it instructs the compiler not to apply optimizations to this variable, ensuring that every read of the flag in the main loop fetches its true, up-to-date value from memory, which may have been modified at any time by the ISR. This prevents potential race conditions and ensures the event is reliably detected by the synchronous Petri net logic.
 
 \subsection{UART-Based Communication Channel}
 UART communication is ideal for point-to-point serial data exchange. Unlike the ISR-driven \gls{i2c} slave, the UART implementation uses polling.
@@ -229,32 +252,71 @@ UART communication is ideal for point-to-point serial data exchange. Unlike the 
 ?protocol=uart&projectName=SystemA&eventName=toggleLED&baudRate=9600
 \end{verbatim}
 
-In the code shown in Listing~\ref{lst:uart_receiver}, the main loop actively checks for incoming data in each cycle by calling \texttt{MySerial.available()}. This polling approach is simpler to implement than ISRs and avoids some complexities of interrupt programming. However, it relies on the Petri net's execution cycle being fast enough to check the serial buffer before it overflows. This presents a classic trade-off in embedded systems: ISRs offer lower latency and higher responsiveness at the cost of complexity, while polling is simpler but can potentially miss events in systems with a slow or variable loop rate.
+In the code, provided in full in Appendix~\ref{appendix:uart}, the main loop actively checks for incoming data in each cycle by calling \texttt{MySerial.available()}. This polling approach is simpler to implement than ISRs and avoids some complexities of interrupt programming. However, it relies on the Petri net's execution cycle being fast enough to check the serial buffer before it overflows. This presents a classic trade-off in embedded systems: ISRs offer lower latency and higher responsiveness at the cost of complexity, while polling is simpler but can potentially miss events in systems with a slow or variable loop rate.
 
 \begin{verbatim}
-// PART 1: Global scope definitions
+
+/*
+* PART 1: Place this at the top of your file with the other global
+ variables and includes.
+*/
 #include <HardwareSerial.h>
+
+// -- UART Configuration --
 HardwareSerial MySerial(2);
-volatile bool event_trigger_flag = false; // The same bridge pattern
+#define RXD2 16
+#define TXD2 17
 
-// PART 3: In SystemA_GetInputSignals() (synchronous context)
-// The polling happens inside this helper function
-waitMessageUart(); 
+// -- Message and Flag Definitions --
+const String message_uart_toggleLED = "trigger_toggleLED";
+volatile bool toggleLED_trigger_flag = 0; // flag only for receiving signals
 
-if (event_trigger_flag == true) {
-    events->toggleLED = 1;
-    event_trigger_flag = false; // Reset the flag
+// -- Function Prototypes --
+void setupUart_toggleLED();
+String receiveDataUart();
+void waitMessageUart();
+
+/*
+* PART 2: Place this inside your 'SystemA_InitializeIO()' function.
+*/
+setupUart_toggleLED();
+
+/*
+* PART 3: Place this inside your 'SystemA_GetInputSignals()' function.
+*/
+waitMessageUart();
+if (toggleLED_trigger_flag == 1) {
+events->toggleLED = 1;
+toggleLED_trigger_flag = 0; // Reset the flag to fire only once
+} else {
+events->toggleLED = 0; // Ensure the event is inactive by default
 }
 
-// PART 4: Helper function for polling (asynchronous context)
+/*
+* PART 4: Place this at the bottom of your file with the other helper functions.
+*/
+void setupUart_toggleLED() {
+MySerial.begin(9600, SERIAL_8N1, RXD2, TXD2);
+Serial.println("UART communication initialized (Receiver).");
+}
+
+String receiveDataUart() {
+if (MySerial.available()) {
+String data = MySerial.readStringUntil('\n');
+data.trim();
+return data;
+}
+return "";
+}
+
 void waitMessageUart() {
-    if (MySerial.available() > 0) { // Actively polling the buffer
-        String receivedMessage = MySerial.readStringUntil('\n');
-        if (receivedMessage == "trigger_toggleLED") {
-            event_trigger_flag = true; // Set flag if message matches
-        }
-    }
+String receivedMessage = receiveDataUart();
+if (receivedMessage.length() > 0 && receivedMessage == message_uart_toggleLED) {
+toggleLED_trigger_flag = 1;
+Serial.println("Correct message received. Flag for 'toggleLED' activated.");
 }
+}
+
 \end{verbatim}
 
 Despite the different detection mechanism (polling vs. ISR), the code employs the exact same \texttt{volatile} flag pattern to safely bridge the asynchronous nature of serial data arrival with the synchronous \texttt{GetInputSignals()} function call.
@@ -267,36 +329,83 @@ For networked systems, the tool generates code using the MQTT protocol, which en
 ?protocol=tcp&projectName=SensorNetwork&eventName=alert&topic=sensors/events
 \end{verbatim}
 
-The implementation, shown in Listing~\ref{lst:mqtt_receiver}, leverages the \texttt{PubSubClient} library, which uses a callback function (\texttt{callback}) that is automatically executed when a message arrives on a subscribed topic. This is conceptually similar to an ISR but operates at a higher software level. The same asynchronous-to-synchronous bridge pattern is used to signal the event to the main loop.
+The implementation, provided in full in Appendix~\ref{appendix:tcp}, leverages the \texttt{PubSubClient} library, which uses a callback function (\texttt{callback}) that is automatically executed when a message arrives on a subscribed topic. This is conceptually similar to an ISR but operates at a higher software level. The same asynchronous-to-synchronous bridge pattern is used to signal the event to the main loop.
 
 \begin{verbatim}
 // PART 1: Global scope definitions
 #include <WiFi.h>
 #include <PubSubClient.h>
-volatile bool event_trigger_flag = false; // The bridge pattern again
+volatile bool alert_trigger_flag = 0; // The bridge pattern again
 
-// PART 2: In SensorNetwork_InitializeIO()
-client.setCallback(callback); // Register the callback function
+/...
 
-// PART 3: In SensorNetwork_GetInputSignals()
-if (event_trigger_flag == true) {
-    events->alert = 1;
-    event_trigger_flag = false; // Reset the flag
+/*
+* PART 3: Place inside SensorNetwork_GetInputSignals()
+*/
+if (alert_trigger_flag) {
+events->alert = 1;
+alert_trigger_flag = 0;
+} else {
+events->alert = 0;
 }
 
-// PART 5: Callback function (asynchronous context)
+/*
+* PART 4: Place inside SensorNetwork_LoopDelay()
+*/
+loopDelayTcp(topic_sub_alert);
+
+
+/*
+* PART 5: Helper functions (place at the bottom)
+*/
+void tcpMqttInitializeIO() {
+Serial.begin(115200);
+WiFi.begin(ssid, password);
+Serial.print("Connecting to WiFi...");
+while (WiFi.status() != WL_CONNECTED) {
+delay(500);
+Serial.print(".");
+}
+Serial.println("\nWiFi connected!");
+client.setServer(mqtt_broker, mqtt_port);
+client.setCallback(callback);
+}
+
+void reconnect(const char* topic) {
+while (!client.connected()) {
+Serial.print("Connecting to MQTT broker...");
+if (client.connect(client_id)) {
+Serial.println("connected!");
+client.subscribe(topic);
+} else {
+Serial.print("failed, rc=");
+Serial.println(client.state());
+delay(5000);
+}
+}
+}
+
+void loopDelayTcp(const char* topic) {
+if (!client.connected()) {
+reconnect(topic);
+}
+client.loop();
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
-    // Code to convert payload to String...
-    if (msg == "trigger_alert") {
-        event_trigger_flag = true; // Set flag inside callback
-    }
+String msg = "";
+for (int i=0; i<length; i++) msg += (char)payload[i];
+msg.trim();
+if (msg == String(message_tcp_alert)) {
+alert_trigger_flag = 1;
+Serial.println("Correct TCP message received. Flag activated for 'alert'.");
 }
 
 // In main loop, client.loop() must be called to check for messages
 // This call triggers the callback if a message is pending.
 \end{verbatim}
 
-A key feature of the generated MQTT code is its focus on resilience. Distributed systems must be able to handle network disruptions. The generated code includes a \texttt{reconnect()} function (not shown in the listing for brevity) that automatically attempts to re-establish the connection to the Wi-Fi network and the MQTT broker if it is lost. This ensures that the controller can recover from transient network failures, making the overall system more robust.
+A key feature of the generated MQTT code is its focus on resilience. Distributed systems must be able to handle network disruptions. The generated code includes a \texttt{reconnect()} function that automatically attempts to re-establish the connection to the Wi-Fi network and the MQTT broker if it is lost. This ensures that the controller can recover from transient network failures, making the overall system more robust.
 
 % ===================================================================
 % Section 3.6: 
