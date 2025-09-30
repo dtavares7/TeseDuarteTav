@@ -18,7 +18,7 @@
 \setlength\epigraphwidth{12.5cm}
 \setlength\epigraphrule{0pt}
 
-This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses \gls{gals} (Globally Asynchronous, Locally Synchronous) communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including \gls{i2c},  \gls{spi}, \gls{uart}, RS-485 and \gls{fifo} with handshake, evaluating their suitability and ensuring effective communication within the distributed \gls{iopt} controller system .Finally, the chapter introduces the \gls{iopt}-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
+This chapter establishes the theoretical framework for the development of a distributed controller communication tool. It begins with an exploration of Petri nets, which are foundational in modeling the interactions and behavior of distributed systems. Following this, the chapter discusses \gls{gals} communication technologies, highlighting their significance in enabling efficient and reliable communication within distributed systems. The discussion then examines various communication protocols, including \gls{i2c},  \gls{spi}, \gls{uart}, RS-485 and \gls{fifo} with handshake, evaluating their suitability and ensuring effective communication within the distributed \gls{iopt} controller system .Finally, the chapter introduces the \gls{iopt}-Tools environment, focusing on its role in supporting the design and development of the distributed controller communication tool.
 
 \section{Petri Nets}
 \label{sec:petri_nets}
@@ -140,7 +140,7 @@ To maintain behavioral consistency immediately after the split, the operation re
 
 The increasing complexity of embedded and distributed systems necessitates modeling approaches that can effectively handle concurrency, modularity, and varying timing constraints. \gls{gals} architectures address these needs by allowing system components to operate synchronously within themselves while communicating asynchronously with other components. When integrated into the \gls{iopt} Petri net framework, \gls{gals} architectures enable a structured and scalable approach to system design and verification.
 
-In \gls{gals} (Globally Asynchronous, Locally Synchronous) systems, each local component operates synchronously with respect to its own local clock, which governs its state evolution. However, since each component resides in a distinct clock domain, the overall system exhibits asynchronous behavior. Inter-component communication can be facilitated through asynchronous wrappers, such as those proposed in~\cite{galsborman}.
+In \gls{gals} systems, each local component operates synchronously with respect to its own local clock, which governs its state evolution. However, since each component resides in a distinct clock domain, the overall system exhibits asynchronous behavior. Inter-component communication can be facilitated through asynchronous wrappers, such as those proposed in~\cite{galsborman}.
 
 
 An extension of \gls{gals} systems applied to \gls{iopt} models is presented in~\cite{galsactd}, where the author introduces an attribute that specifies the Time Domain (\gls{td}) of each node within the \gls{iopt} Petri net, including both places and transitions. This attribute enables the association of each node with a specific hardware or logical component, thereby facilitating modular and time-partitioned system design.
@@ -230,7 +230,7 @@ All elements on the left side operate synchronously within \( TD_1 \), while tho
 \section{Communication support technologies}
 \label{sec:communication_support_technologies}
 
-In this section, various communication technologies utilised within Globally Asynchronous Locally Synchronous (\gls{gals}) systems are examined. The analysis focuses on their design considerations, performance trade-offs, and integration challenges. By providing a comprehensive overview of these mechanisms, the chapter aims to equip readers with the knowledge necessary to navigate the complexities of modern integrated circuit development and to harness the benefits of \gls{gals} architectures for optimised system performance and reliability.
+In this section, various communication technologies utilised within (\gls{gals}) systems are examined. The analysis focuses on their design considerations, performance trade-offs, and integration challenges. By providing a comprehensive overview of these mechanisms, the chapter aims to equip readers with the knowledge necessary to navigate the complexities of modern integrated circuit development and to harness the benefits of \gls{gals} architectures for optimised system performance and reliability.
 
 
 \subsection{I\textsuperscript{2}C}
@@ -240,7 +240,7 @@ The I\textsuperscript{2}C  (Inter-Integrated Circuit) protocol is described as a
 
 Despite its advantages, the I\textsuperscript{2}C  protocol presents certain limitations that may hinder its suitability for high-performance or large-scale applications. The standard I\textsuperscript{2}C bus supports data rates of up to 3.4 Mbps in high-speed mode, which may prove inadequate for systems that demand greater throughput. Moreover, the inherent bus capacitance imposes constraints on the number of connected devices, the permissible bus length and may have problems with bus contention, thereby limiting the scalability of the system ~\cite{I2Cv2}.
 
-Since I\textsuperscript{2}C assumes that both devices operate within the same clock domain, it is not suitable for the asynchronous components of \gls{gals} (Globally Asynchronous, Locally Synchronous) systems. However, its synchronous nature makes it a viable option for communication within the locally synchronous parts of \gls{iopt} sub-models, where tight timing and minimal wiring are priorities. This would necessitate careful design to ensure proper clock domain crossing if data needs to be exchanged with other asynchronous \gls{gals} domains.
+Since I\textsuperscript{2}C assumes that both devices operate within the same clock domain, it is not suitable for the asynchronous components of \gls{gals} systems. However, its synchronous nature makes it a viable option for communication within the locally synchronous parts of \gls{iopt} sub-models, where tight timing and minimal wiring are priorities. This would necessitate careful design to ensure proper clock domain crossing if data needs to be exchanged with other asynchronous \gls{gals} domains.
 
 \subsection{SPI}
 \label{subsub:spi}
@@ -252,7 +252,7 @@ The protocol’s inherent simplicity, flexibility, and capacity for high-speed d
 While the Serial Peripheral Interface (\gls{spi}) protocol offers several advantages, it also presents notable limitations. Each additional slave device requires a dedicated Slave Select (SS) line, which can increase the pin count on the master device and complicate hardware design, particularly in systems with numerous peripherals. Moreover, unlike protocols such as  I\textsuperscript{2}C, \gls{spi} does not include inherent error-checking mechanisms, necessitating the implementation of additional measures to ensure data integrity. Furthermore, \gls{spi} is typically optimized for short-distance communication within a single printed circuit board (\gls{pcb}), as signal degradation and timing issues may arise over extended distances. These factors can limit the scalability and robustness of \gls{spi} in more complex or distributed system architectures~\cite{spisite2}.
 
 
-\gls{spi}, like I\textsuperscript{2}C, is a synchronous communication protocol, meaning that data transmission is synchronized by a clock signal generated by the master device. Although this ensures reliable data transfer, \gls{spi} is only suitable for the synchronous parts within a \gls{gals} (Globally Asynchronous, Locally Synchronous) subsystem and is not appropriate for communication between asynchronous \gls{gals} domains. Its high speed makes it attractive for critical data paths within a locally synchronous \gls{iopt} sub-model, but integrating it into a globally asynchronous system would require dedicated asynchronous mechanisms at the clock domain boundaries.
+\gls{spi}, like I\textsuperscript{2}C, is a synchronous communication protocol, meaning that data transmission is synchronized by a clock signal generated by the master device. Although this ensures reliable data transfer, \gls{spi} is only suitable for the synchronous parts within a \gls{gals} subsystem and is not appropriate for communication between asynchronous \gls{gals} domains. Its high speed makes it attractive for critical data paths within a locally synchronous \gls{iopt} sub-model, but integrating it into a globally asynchronous system would require dedicated asynchronous mechanisms at the clock domain boundaries.
 
 \subsection{UART}
 \label{sub:uart}
@@ -296,8 +296,7 @@ One of \gls{mqtt}’s defining features is its three Quality of Service (QoS) le
 
 These adaptations significantly reduce message overhead, making \gls{mqtt}-SN more appropriate for constrained distributed \gls{iopt} sub-models deployed in resource-limited contexts. Moreover, the combination of \gls{udp}-based transport and compact message formats reduces communication latency, an essential requirement in \gls{gals} systems where asynchronous interactions between modules must be timely. Reliability, when needed, can be addressed through \gls{mqtt}-SN’s QoS support or modeled explicitly at the \gls{iopt} Petri net layer, ensuring that protocol simplicity does not compromise system correctness.
 
-\paragraph{Comparison and Suitability}
-Although \gls{mqtt}is widely adopted in IoT applications due to its reliability and the structured publish / subscribe model, its reliance on \gls{tcp} introduces connection management overhead and potential latency \cite{banks2014mqtt}. \gls{mqtt}-SN, on the contrary, trades some of the reliability guarantees of \gls{tcp} for lower latency and efficiency, which makes it particularly attractive for asynchronous real-time communication in distributed \gls{iopt}/\gls{gals} systems. The choice between them thus depends on the constraints of the system: \gls{mqtt}may be more suitable when strong reliability and established broker infrastructure are required, whereas \gls{mqtt}-SN aligns better with scenarios that emphasize lightweight, low-latency exchanges under strict resource constraints.
+Although \gls{mqtt} is widely adopted in IoT applications due to its reliability and the structured publish / subscribe model, its reliance on \gls{tcp} introduces connection management overhead and potential latency \cite{banks2014mqtt}. \gls{mqtt}-SN, on the contrary, trades some of the reliability guarantees of \gls{tcp} for lower latency and efficiency, which makes it particularly attractive for asynchronous real-time communication in distributed \gls{iopt}/\gls{gals} systems. The choice between them thus depends on the constraints of the system: \gls{mqtt}may be more suitable when strong reliability and established broker infrastructure are required, whereas \gls{mqtt}-SN aligns better with scenarios that emphasize lightweight, low-latency exchanges under strict resource constraints.
 
 
 
@@ -321,7 +320,7 @@ Although \gls{mqtt}is widely adopted in IoT applications due to its reliability 
 \section{Design Flow for Distributed Systems: From Models to Networked Components }
 \label{sec:design_flow}
 
-The development of distributed control systems, under the Globally Asynchronous, Locally Synchronous (\gls{gals}) paradigm \cite{galsactd, galsborman}, often follows a structured design flow. This flow, illustrated in Figure~\ref{fig:model_to_code_mapping}, commences with a high-level system model and progresses through decomposition into components, eventually mapping these components onto specific implementation platforms with diverse network topologies. This process is fundamental to managing complexity and realizing distributed functionality, and it directly influences the selection of appropriate communication protocols.
+The development of distributed control systems, under the (\gls{gals}) paradigm \cite{galsactd, galsborman}, often follows a structured design flow. This flow, illustrated in Figure~\ref{fig:model_to_code_mapping}, commences with a high-level system model and progresses through decomposition into components, eventually mapping these components onto specific implementation platforms with diverse network topologies. This process is fundamental to managing complexity and realizing distributed functionality, and it directly influences the selection of appropriate communication protocols.
 
 
 \begin{figure}[htbp]
@@ -354,11 +353,13 @@ This layered approach directly correlates with the \textbf{GALS paradigm}. The d
 The \textbf{IOPT net decomposition} (net splitting, Section~\ref{sub:net_addicion}) is thus a foundational step in this architectural mapping. It not only breaks down complexity but also explicitly defines the interfaces where inter-component communication is required. These interfaces, often realized as shared places or synchronized transitions in the original model, become the points where communication channels – logical at first, then physical – must be established \cite{Barrosadd}.
 
 Finally, the selection of \textbf{communication protocols} (as detailed in Section~\ref{sec:communication_support_technologies}) is intrinsically linked to the chosen network topology and the characteristics of the \gls{gals} interactions. For instance:
+
 \begin{itemize}
     \item Direct connections might be implemented using \gls{uart} for simple serial data exchange \cite{UARTwiki, Rao2021} or a dedicated \gls{fifo} with handshake logic for high-speed, reliable data streaming between two specific FPGAs or modules (as discussed in Section~\ref{sub:fifo+handshake}).
     \item Shared bus topologies, as illustrated in Figure~\ref{fig:model_to_code_mapping}, naturally lend themselves to protocols like I\textsuperscript{2}C, which includes addressing for multiple devices \cite{i2c,I2Cv2}, or \gls{spi}, where multiple slaves can be managed via individual select lines \cite{spisite, spisite2}.
     \item \gls{noc} architectures often employ more sophisticated packet-based protocols that handle routing, flow control, and error checking internally.
 \end{itemize}
+
 The communication channels modeled in the \gls{iopt} \gls{gals} framework, representing events or data exchange between sub-models, must be implemented using these protocols over the selected physical network. The design of the proposed automated code generation tool, central to this dissertation, aims to bridge the gap between the high-level specification of these decomposed \gls{iopt} sub-models and the concrete implementation of the communication logic using these diverse protocols and their underlying topological assumptions.
 
 

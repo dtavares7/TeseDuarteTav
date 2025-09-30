@@ -118,7 +118,7 @@ Every \gls{api} request must include three global parameters that define the con
 
 In addition to the global parameters, each protocol requires or accepts a unique set of parameters to configure its behavior according to the protocol needs.
 
-\paragraph{\gls{i2c} Protocol.} For \gls{i2c} communication, the parameters specified in Table \ref{tab:i2c_params} are required.
+Since \gls{i2c} communication operates in a master-slave paradigm, the parameters specified in Table \ref{tab:i2c_params} are required to ensure proper device addressing and bus management.
 
 \begin{table}[h!]
     \centering
@@ -132,7 +132,7 @@ In addition to the global parameters, each protocol requires or accepts a unique
     \end{tabular}
 \end{table}
 
-\paragraph{UART Protocol.} The \gls{uart} protocol interface offers several optional parameters for fine-tuning the serial communication, as detailed in Table \ref{tab:uart_params}.
+The \gls{uart} protocol interface offers several optional parameters for fine-tuning the serial communication, as detailed in Table \ref{tab:uart_params}.
 
 \begin{table}[h!]
     \centering
@@ -151,7 +151,7 @@ In addition to the global parameters, each protocol requires or accepts a unique
     \end{tabular}
 \end{table}
 
-\paragraph{TCP/MQTT Protocol.} For network communication via \gls{tcp}/\gls{mqtt}, the \gls{api} requires a topic to be specified. Other parameters related to network and broker configuration are optional, with predefined default values that facilitate rapid prototyping and testing. These are listed in Table \ref{tab:tcp_params}.
+For network communication via \gls{tcp}/\gls{mqtt}, the \gls{api} requires a topic to be specified. Other parameters related to network and broker configuration are optional, with predefined default values that facilitate rapid prototyping and testing. These are listed in Table \ref{tab:tcp_params}.
 
 \begin{table}[h!]
     \centering
@@ -209,7 +209,7 @@ void receiveI2CEvent(int byteCount); // Function prototype
 /*
 * PART 2: Place this inside your 'DemoProject_InitializeIO()' function.
 */
-// Start the \gls{i2c} bus as a slave with the defined address
+// Start the i2c bus as a slave with the defined address
 Wire.begin(I2C_SLAVE_ADDRESS_for_buttonPress);
 // Register the callback function that will be called when receiving data
 Wire.onReceive(receiveI2CEvent);
@@ -262,7 +262,7 @@ In the code, provided in full in Appendix~\ref{appendix:uart}, the main loop act
 */
 #include <HardwareSerial.h>
 
-// -- \gls{uart} Configuration --
+// -- uart Configuration --
 HardwareSerial MySerial(2);
 #define RXD2 16
 #define TXD2 17
@@ -297,7 +297,7 @@ events->toggleLED = 0; // Ensure the event is inactive by default
 */
 void setupUart_toggleLED() {
 MySerial.begin(9600, SERIAL_8N1, RXD2, TXD2);
-Serial.println("\gls{uart} communication initialized (Receiver).");
+Serial.println("uart communication initialized (Receiver).");
 }
 
 String receiveDataUart() {
@@ -373,7 +373,7 @@ client.setCallback(callback);
 
 void reconnect(const char* topic) {
 while (!client.connected()) {
-Serial.print("Connecting to \gls{mqtt} broker...");
+Serial.print("Connecting to mqtt broker...");
 if (client.connect(client_id)) {
 Serial.println("connected!");
 client.subscribe(topic);
@@ -398,7 +398,7 @@ for (int i=0; i<length; i++) msg += (char)payload[i];
 msg.trim();
 if (msg == String(message_tcp_alert)) {
 alert_trigger_flag = 1;
-Serial.println("Correct \gls{tcp} message received. Flag activated for 'alert'.");
+Serial.println("Correct tcp message received. Flag activated for 'alert'.");
 }
 
 // In main loop, client.loop() must be called to check for messages

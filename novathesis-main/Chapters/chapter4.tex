@@ -95,13 +95,13 @@ The target deployment architecture for this case study, shown in Figure \ref{fig
 As depicted in the deployment architecture (Figure \ref{fig:deployment_layout}), \textit{Controller Two} acts as the master on a local \gls{i2c} bus, coordinating with \textit{Controller Entrance} and \textit{Controller Three}, which act as slaves. To generate the necessary master and slave code for an event representing a piece transfer, two \gls{api} calls similar to the following were used:
 
 \begin{verbatim}
-?protocol=\gls{\gls{i2c}}&projectName=ControllerTwo&eventName=event37_td_1
+?protocol=i2c&projectName=ControllerTwo&eventName=event37_td_1
 &slaveAddress=8&slaveMessage=A
 \end{verbatim}
 
 And for the second event:
 \begin{verbatim}
-?protocol=\gls{i2c}&projectName=ControllerTwo&eventName=event49_td_3
+?protocol=i2c&projectName=ControllerTwo&eventName=event49_td_3
 &slaveAddress=9&slaveMessage=B
 \end{verbatim}
 
@@ -262,7 +262,7 @@ The specific procedure varied for each protocol to best capture its characterist
 \begin{itemize}
     \item \textbf{I\textsuperscript{2}C and \gls{uart}:} To measure the direct one-way transfer time, the sending controller recorded a start timestamp, \texttt{t\_start = micros()}, and embedded this value within the message payload itself. Upon reception, the receiving controller immediately recorded an end timestamp, \texttt{t\_end = micros()}. The latency was then calculated as \texttt{latency = t\_end - t\_start} and printed to the Serial Monitor.
 
-    \item \textbf{TCP/MQTT:} Due to the indeterminate path through a public broker, a round-trip time (RTT) was measured to provide a stable metric. A "ping-pong" test was configured where the first controller published a message and recorded \texttt{t\_start}. The second controller was programmed to immediately publish a reply upon receiving the message. The first controller recorded \texttt{t\_end} upon receiving the reply. The one-way latency was then estimated as \texttt{RTT / 2}.
+    \item \textbf{TCP/MQTT:} Due to the indeterminate path through a public broker, a round-trip time (RTT) was measured to provide a stable metric. A "ping-pong" test was configured where the first controller published a message and recorded \texttt{t\_start}. The second controller was programmed to immediately publish a reply upon receiving the message. The first controller recorded \texttt{t\_end} upon receiving the reply. The one-way latency was then estimated as \texttt{RTT/2}.
 \end{itemize}
 
 % ===================================================================
