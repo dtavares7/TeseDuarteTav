@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversor de Acrónimos para LaTeX (Versão Segura)</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f9; }
+        h1, h2 { color: #333; }
+        textarea { width: 100%; height: 300px; margin-bottom: 1em; font-family: monospace; font-size: 14px; border: 1px solid #ccc; padding: 10px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; margin-top: 1em; border-radius: 5px; }
+        #acronym-list { background-color: #e9ecef; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Conversor de Acrónimos para LaTeX (Versão Segura)</h1>
+    <p>Este script ignora o conteúdo dentro de chavetas <code>{}</code> para evitar alterar comandos LaTeX.</p>
+
+    <h2>Acrónimos a serem substituídos:</h2>
+    <pre id="acronym-list"></pre>
+
+    <h2>Input (O seu código LaTeX)</h2>
+    <textarea id="input-latex" placeholder="Cole aqui o conteúdo do seu ficheiro .tex..."></textarea>
+
+    <button onclick="convertAcronyms()">Converter Acrónimos</button>
+
+    <h2>Output (Resultado)</h2>
+    <textarea id="output-latex" readonly placeholder="O resultado aparecerá aqui..."></textarea>
+
+    <div class="warning">
+        <strong>IMPORTANTE:</strong> Embora este script seja mais seguro, reveja sempre o output com atenção antes de guardar. A revisão final é da sua responsabilidade.
+    </div>
+
+    <script>
+        const acronyms = [
+            // Prioridade Alta
+            { plain: 'IOPT', latex: '\\gls{iopt}' },
+            { plain: 'GALS', latex: '\\gls{gals}' },
+            { plain: 'API', latex: '\\gls{api}' },
+            { plain: 'I2C', latex: '\\gls{i2c}' },
+            { plain: 'I\\textsuperscript{2}C', latex: '\\gls{i2c}' },
+            { plain: 'UART', latex: '\\gls{uart}' },
+            { plain: 'MQTT', latex: '\\gls{mqtt}' },
+            // Prioridade Média
+            { plain: 'TCP', latex: '\\gls{tcp}' },
+            { plain: 'UDP', latex: '\\gls{udp}' },
+            { plain: 'SPI', latex: '\\gls{spi}' },
+            { plain: 'FIFO', latex: '\\gls{fifo}' },
+            { plain: 'FPGA', latex: '\\gls{fpga}' },
+            { plain: 'GUI', latex: '\\gls{gui}' },
+            { plain: 'PN', latex: '\\gls{pn}' },
+            { plain: 'TD', latex: '\\gls{td}' },
+            { plain: 'AC', latex: '\\gls{ac}' },
+            { plain: 'ISR', latex: '\\gls{isr}' },
+            // Prioridade Baixa
+            { plain: 'AJAX', latex: '\\gls{ajax}' },
+            { plain: 'PNML', latex: '\\gls{pnml}' },
+            { plain: 'SVG', latex: '\\gls{svg}' },
+            { plain: 'VHDL', latex: '\\gls{vhdl}' },
+            { plain: 'XML', latex: '\\gls{xml}' },
+            { plain: 'PCB', latex: '\\gls{pcb}' },
+            { plain: 'NoC', latex: '\\gls{noc}' },
+            { plain: 'IEEE', latex: '\\gls{ieee}' },
+            { plain: 'I/O', latex: '\\gls{io}' },
+            { plain: 'TX', latex: '\\gls{tx}' },
+            { plain: 'RX', latex: '\\gls{rx}' }
+        ];
+
+        document.getElementById('acronym-list').textContent = 
+            acronyms.map(a => `${a.plain} -> ${a.latex}`).join('\n');
+
+        function convertAcronyms() {
+            const inputText = document.getElementById('input-latex').value;
+            let result = '';
+
+            // 1. Divide o texto em partes: texto normal e conteúdo dentro de {}.
+            // A regex (/{.*?}/g) encontra todas as ocorrências de texto entre chavetas.
+            const segments = inputText.split(/({.*?})/g);
+
+            // 2. Itera sobre cada segmento
+            segments.forEach(segment => {
+                // 3. Se o segmento for conteúdo protegido (começa com { e acaba com }), não faz nada.
+                if (segment.startsWith('{') && segment.endsWith('}')) {
+                    result += segment;
+                } else {
+                    // 4. Se for texto normal, aplica a substituição dos acrónimos.
+                    let processedSegment = segment;
+                    acronyms.forEach(acronym => {
+                        // Usa a mesma lógica de "palavra inteira" de antes.
+                        const regex = new RegExp('\\b' + acronym.plain.replace(/\\/g, '\\\\') + '\\b', 'g');
+                        processedSegment = processedSegment.replace(regex, acronym.latex);
+                    });
+                    result += processedSegment;
+                }
+            });
+
+            // 5. Mostra o resultado final
+            document.getElementById('output-latex').value = result;
+        }
+    </script>
+
+</body>
+</html>
