@@ -264,8 +264,6 @@ The specific procedure varied for each protocol to best capture its characterist
 
     \item \textbf{TCP/MQTT:} Due to the indeterminate path through a public broker, a round-trip time (RTT) was measured to provide a stable metric. A "ping-pong" test was configured where the first controller published a message and recorded \texttt{t\_start}. The second controller was programmed to immediately publish a reply upon receiving the message. The first controller recorded \texttt{t\_end} upon receiving the reply. The one-way latency was then estimated as \texttt{RTT / 2}.
 \end{itemize}
-For each protocol, the test was executed \textbf{20 times} to account for minor variations, and the average of these measurements was taken as the final, representative result.
-
 
 % ===================================================================
 % ===================================================================
@@ -339,6 +337,9 @@ The methodologies described in the previous section were applied to the hardware
         \caption{Comparison of average communication latency across protocols. Note the logarithmic scale on the y-axis is required to visualize the vast difference in performance.}
         \label{fig:latency_chart}
     \end{figure}
+    
+For each protocol, the test was executed \textbf{20 times} to account for minor variations, and the average of these measurements was taken as the final, representative result.
+
 
 
 % ===================================================================

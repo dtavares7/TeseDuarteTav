@@ -9,42 +9,10 @@
 \typeout{NT FILE abstract-pt.tex}%
 
 
+O desenvolvimento orientado a modelos, particularmente com o uso de formalismos como as Redes de Petri Input-Output Place-Transition (IOPT), oferece uma abordagem robusta para o projeto de controladores embebidos complexos. A plataforma IOPT-Tools suporta este paradigma, automatizando a geração da lógica dos controladores, mas existe uma lacuna significativa na sua capacidade de gerar automaticamente a infraestrutura de comunicação necessária para sistemas distribuídos. Isto exige um processo manual, demorado e propenso a erros para implementar as ligações de comunicação entre controladores.
 
-Como por texto em negrito \textbf{aqui} 
+Esta dissertação aborda esta lacuna, apresentando o desenho, a implementação e a validação de uma Application Programming Interface (API) baseada na web para a geração automatizada de módulos de comunicação. A ferramenta produz dinamicamente código C++ para três protocolos distintos, I²C, UART e TCP/MQTT,  projetado para integração direta no fluxo de trabalho das IOPT-Tools.
 
-%
-Como fazer linha vazia. rever texto
+A utilidade e o desempenho do código gerado foram validados através de um estudo de caso abrangente de um sistema distribuído de quatro controladores para tapetes rolantes. Uma análise empírica forneceu métricas de desempenho quantitativas, demonstrando os significativos compromissos (\textit{trade-offs}) entre os protocolos: protocolos de hardware como o I²C (latência de 185 µs, consumo de memória residual) ofereceram um desempenho superior em tempo real, enquanto o protocolo de rede TCP/MQTT (latência de 45 ms, consumo superior a 26 kB) proporcionou maior flexibilidade funcional. O comportamento dinâmico do sistema implementado foi também verificado através de diagramas temporais gerados pelo simulador.
 
-
-
-
-
-O ambiente de desenvolvimento \textbf{IOPT-Tools}, acessível publicamente em http://gres.uninova.pt/IOPT-Tools/, apresenta-se como uma plataforma essencial para a /modelação/ e gestão de modelos \textbf{ IOPT}, uma classe especializada de redes de Petri orientada ao desenvolvimento de controladores. Este sistema reveste-se de particular importância no âmbito da automação e do controlo distribuído, permitindo a decomposição de um modelo IOPT em sub-modelos independentes, os quais podem ser executados de forma distribuída.
-
-A presente dissertação tem como objetivo o estudo, desenvolvimento e implementação dos módulos responsáveis pela comunicação entre controladores distribuídos /dentro/ do ambiente \textbf{IOPT-Tools}. Este ambiente permite a edição e decomposição de modelos \textbf{IOPT}, com vista à sua execução distribuída, sendo que cada nó da rede de controladores assume a responsabilidade pela execução de um sub-modelo \textbf{IOPT} associado e pela comunicação com os outros controladores da rede.
-
-Para resolver o problema proposto, o trabalho será orientado para duas vertentes principais: o estudo das tecnologias de comunicação e o desenvolvimento de um algoritmo para a geração automática de código para os sub-modelos IOPT.
-
-O principal desafio do trabalho consiste em assegurar uma comunicação eficiente e fiável entre os controladores distribuídos, tendo em consideração a utilização de diferentes meios de comunicação. A diversidade de tecnologias de comunicação envolvidas exige o desenvolvimento de uma solução robusta, capaz de lidar com as especificidades de cada tipo de rede, garantindo a troca de dados entre os controladores de forma eficiente, síncrona quando necessário, e com latência mínima, em conformidade com os requisitos dos sistemas \textbf{GALS} (Globalmente Assíncrono Localmente Síncrono).
-
-O primeiro foco do trabalho, será realizar um estudo aprofundado de duas categorias de tecnologias de comunicação: Redes de ponto a ponto e as redes wireless. As redes de ponto a ponto, como I2C, SPI e EEPROM, serão analisadas pela sua simplicidade, fiabilidade e baixa latência, sendo frequentemente utilizadas em sistemas de controlo distribuído. Por outro lado, as redes wireless, incluindo Wi-Fi, Bluetooth e TCP/IP, serão estudadas devido à sua flexibilidade e capacidade de suportar comunicação em sistemas mais dinâmicos e escaláveis. O objetivo deste estudo comparativo é identificar qual destas tecnologias se adapta melhor aos requisitos do sistema IOPT, tendo em consideração aspetos como latência, largura de banda, robustez e facilidade de implementação.
-
-Simultaneamente, será desenvolvido um algoritmo ou mecanismo que, com base no modelo de comunicação selecionado, permita a geração automática do código necessário para os sub-modelos IOPT. Este algoritmo terá como objetivo facilitar a implementação da comunicação entre os controladores distribuídos, garantindo que cada sub-modelo \textbf{IOPT} seja executado corretamente e interaja de forma eficiente com os outros controladores no sistema distribuído. A criação deste mecanismo será crucial para assegurar que os controladores possam comunicar de forma eficiente, respeitando os requisitos do modelo \textbf{GALS} e garantindo a integridade da troca de dados entre os controladores distribuídos.
-
-Em suma, a resolução do problema passará pela análise das tecnologias de comunicação mais adequadas para o sistema, seguida do desenvolvimento de um algoritmo que permita a geração automatizada do código para os sub-modelos \textbf{IOPT}, assegurando assim a comunicação eficiente e fiável entre os controladores distribuídos.
-
-
-
-
-% Palavras-chave do resumo em Português
-% \begin{keywords}
-% Palavra-chave 1, Palavra-chave 2, Palavra-chave 3, Palavra-chave 4
-% \end{keywords}
-\keywords{
- IOPT-Tools \and
-  GALS \and
-  Redes-Petri \and
-  Redes de comunicação
-
-}
-% to add an extra black line
+Os resultados confirmam que a ferramenta desenvolvida acelera com sucesso o desenvolvimento de sistemas distribuídos, reduz os erros de implementação e capacita os projetistas com os dados empíricos necessários para tomar decisões informadas e baseadas em dados, ao equilibrar os requisitos de desempenho com as restrições de recursos dos sistemas embebidos.
