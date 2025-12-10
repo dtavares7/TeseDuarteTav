@@ -23,15 +23,12 @@ This chapter establishes the theoretical framework for the development of a dist
 \section{Petri Nets}
 \label{sec:petri_nets}
 
-
-\lugoADD{In subsequent decades}
-\lugoDEL{the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}, while the annual International Conference on Applications and Theory of Petri Nets and Concurrency provided a forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete‐event and concurrent systems modeling~\cite{WikiPetriNet2025}.}\lugoADD{In subsequent decades,}
-
 \subsection{History}
 \label{subsec:history}
 The German computer scientist Carl Adam Petri formalized the concept of  Petri nets, as a formalism for modeling distributed and concurrent systems, in his 1962 PhD dissertation, \emph{Kommunikation mit Automaten}, at the Technical University of Darmstadt~\cite{petri1962}. In subsequent decades, the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}. Additionally, the establishment of the annual International Conference on Applications and Theory of Petri Nets and Concurrency provided a forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete-event and concurrent systems modeling~\cite{WikiPetriNet2025}.
 
 \lugoDEL{the theoretical foundations of Petri nets were strengthened by seminal results on decision problems such as reachability and liveness~\cite{murata}, while the annual International Conference on Applications and Theory of Petri Nets and Concurrency provided a forum to advance both theory and practice~\cite{ICPN1980}, firmly establishing Petri nets as a formal graphical language for discrete‐event and concurrent systems modeling~\cite{WikiPetriNet2025}.}
+
 
 \subsection{Definition}
 \label{subsec:definition}
@@ -73,12 +70,12 @@ The formal definition of a P/T net states that a Petri net \( \gls{pn} \) is def
 A Petri net structure \( N = (P, T, F, W) \) without an initial marking is denoted by \( N \) and a Petri net with an initial marking is denoted by \( (N, M_0) \).
 
 
-Figure~\ref{fig:petrinet} presents a Place/Transition net that models the execution and synchronization of two parallel processes. The model demonstrates a classic fork-join structure, where concurrent tasks are initiated by transition $T_0$ and must both be completed before synchronizing at transition $T_3$ to continue the cycle.
+Figure~\ref{fig:petrinet} presents a Place/Transition net that models the execution and synchronization of two parallel processes. The model demonstrates a classic fork-join structure, where concurrent tasks are initiated by transition $T_0$ and must both be completed before synchronizing at transition $T_4$ to continue the cycle.
 
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petriNetExemplo.jpg}
+  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petriNetExempl.png}
   \caption{Example of Place/Transition net.}
   \label{fig:petrinet}
 \end{figure}
@@ -97,7 +94,7 @@ Furthermore, the \gls{iopt} framework incorporates features such as time domains
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrisplit.jpg}
+  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrisplit.png}
   \caption{Example of IOPT Petri net.}
   \label{fig:petrisplit}
 \end{figure}
@@ -190,7 +187,7 @@ All elements on the left side operate synchronously within \( TD_1 \), while tho
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrigals.jpg}
+  \includegraphics[width=0.6\textwidth]{Chapters/Figures/petrigal.png}
   \caption{Example of Petri net with GALS system.}
   \label{fig:petrigals}
 \end{figure}
