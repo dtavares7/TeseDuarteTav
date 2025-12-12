@@ -2816,5 +2816,5 @@
 }
 
 
-\newcommand{\lugoDEL}[1]{\textcolor{red}{#1}}
-\newcommand{\lugoADD}[1]{\textcolor{blue}{#1}}
+\newcommand{\lugoDEL}[1]{\textcolor{red}{}}
+\newcommand{\lugoADD}[1]{\textcolor{black}{#1}}
